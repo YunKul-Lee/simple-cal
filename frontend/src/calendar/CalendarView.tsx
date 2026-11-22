@@ -33,7 +33,7 @@ function badgeText(date: string): string {
 
 function renderContent(arg: EventContentArg) {
   const { item, overdueFrom } = propsOf(arg)
-  if (item.type === 'event') return undefined // FullCalendar 기본 표시(시간 + 제목)
+  if (item.type === 'event') return true // v6: true여야 FullCalendar 기본 표시(시간 + 제목) — undefined는 빈 칸
   return (
     <div className="task-content">
       <input type="checkbox" className="task-check" aria-label={`${item.title} 완료`} checked={item.done} readOnly />
