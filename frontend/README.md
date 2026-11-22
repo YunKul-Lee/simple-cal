@@ -16,13 +16,14 @@ e2e는 `e2e/`에 있고, 실제 Chromium으로 빠른 생성·드래그·보기 
 
 가짜 데이터를 지우려면 브라우저 개발자 도구에서 `localStorage.removeItem('simple-cal:db')` 후 새로고침.
 
-## 스프링부트 백엔드 연결
+## 실제 백엔드로 실행
+
+백엔드(`../backend`)를 먼저 띄운 뒤:
 
 ```bash
-VITE_MOCK=off VITE_API_TARGET=http://localhost:8080 npm run dev
+VITE_MOCK=off npm run dev   # /api 요청이 Vite 프록시를 통해 localhost:8080으로 간다
 ```
 
-- `VITE_MOCK=off` 이면 MSW를 시작하지 않고, `/api` 요청은 Vite 프록시를 통해 `VITE_API_TARGET`으로 간다.
-- API 계약은 설계 문서 **3.4** 절이 기준이다 (경로, 포함 범위 규칙, PATCH의 "빠진 필드 = 유지 / null = 비움", 오류 `{ "message": string }`).
-- 첫 실행 시 캘린더가 없으면 `{ name: '내 캘린더', color: '#4a7bd8', visible: true }` 하나를 만드는 규칙(`src/mocks/db.ts`)을 백엔드에서도 같게 구현한다.
-- MSW 핸들러(`src/mocks/handlers.ts`)와 그 테스트가 계약의 실행 가능한 예시다.
+- `VITE_MOCK=off` 이면 MSW를 시작하지 않는다. 백엔드 주소를 바꾸려면 `VITE_API_TARGET`.
+- 예전에 MSW 개발 모드로 띄운 적이 있으면 브라우저에 서비스 워커가 남아 있을 수 있다. 개발자 도구 Application → Service Workers에서 해제하면 확실하다.
+- API 계약은 설계 문서 **3.4** 절, 오류 응답(RFC 9457 Problem Details, 상태 코드 기준)은 [백엔드 설계서 3.4](../docs/superpowers/specs/2026-11-22-simple-cal-backend-design.md). MSW도 같은 형식으로 응답한다(`src/mocks/problems.ts`).
