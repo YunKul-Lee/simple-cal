@@ -4,6 +4,8 @@ import com.simplecal.calendar.CalendarService;
 import com.simplecal.common.ApiException;
 import com.simplecal.common.Ids;
 import com.simplecal.common.ProblemType;
+import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,6 +47,16 @@ public class ItemService {
 	@Transactional
 	public void delete(String id) {
 		items.delete(find(id));
+	}
+
+	@Transactional(readOnly = true)
+	public List<ItemDto> listRange(LocalDate from, LocalDate to) {
+		return items.findOverlapping(from, to).stream().map(ItemEntity::toDto).toList();
+	}
+
+	@Transactional(readOnly = true)
+	public List<ItemDto> listOverdue(LocalDate today) {
+		return items.findOverdue(today).stream().map(ItemEntity::toDto).toList();
 	}
 
 	private ItemEntity find(String id) {
