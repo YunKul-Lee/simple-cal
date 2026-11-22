@@ -123,7 +123,7 @@ JSON, 필드명 camelCase, 위 데이터 모델 그대로.
 
 - (내 판단) `GET /api/items`의 `from`, `to`는 둘 다 포함. "겹친다"는 `date <= to` 그리고 `(endDate ?? date) >= from` — 기간 이전에 시작한 여러 날 일정도 포함.
 - (내 판단) PATCH 규칙: 빠진 필드는 그대로 두고, `null`을 보낸 필드는 비운다. 스프링부트에서는 `Map` 또는 `JsonNullable`로 둘을 구분해야 한다.
-- 오류: 4xx/5xx와 `{ "message": string }`. 화면은 실패 시 알림을 띄우고 변경을 되돌린다.
+- 오류: 4xx/5xx와 RFC 9457 Problem Details(`application/problem+json`; `type`, `title`, `status`, `detail`, `instance`). 한국어 문구는 `detail`. 상태 코드 기준과 `type` 목록은 [백엔드 설계서 3.4](2026-11-22-simple-cal-backend-design.md). 화면은 실패 시 `detail`을 알림으로 띄우고 변경을 되돌린다. (2026-11-22 변경 — 처음엔 `{ "message": string }`였음, 사용자 결정)
 - `id`는 서버(MSW)가 만든다.
 
 ## 4. 검토한 방식
