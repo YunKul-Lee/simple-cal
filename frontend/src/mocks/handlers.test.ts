@@ -164,31 +164,54 @@ test('PATCH는 빠진 필드를 유지하고 null은 비운다', async () => {
   expect(updated.memo).toBe('a');
 });
 
-test('PATCH 결과가 유효하지 않으면 400', async () => {
+type Problem = { type: string; title: string; status: number; detail: string; instance: string };
+
+function expectProblemContentType(res: Response) {
+  expect(res.headers.get('content-type') ?? '').toMatch(/^application\/problem\+json/);
+}
+
+test('PATCH 결과가 유효하지 않으면 422', async () => {
   const calId = await firstCalendarId();
   const event = await createItem(eventInput(calId));
 
   const res = await send('PATCH', `/api/items/${event.id}`, { endTime: '09:00' });
-  expect(res.status).toBe(400);
-  const body = (await res.json()) as { message: string };
-  expect(body.message).toBe('종료가 시작보다 빠를 수 없습니다');
+  expect(res.status).toBe(422);
+  expectProblemContentType(res);
+  const body = (await res.json()) as Problem;
+  expect(body.type).toBe('/problems/end-before-start');
+  expect(body.detail).toBe('종료가 시작보다 빠를 수 없습니다');
+  expect(body.instance).toBe(`/api/items/${event.id}`);
 
   const stored = (await listItems('2026-11-23', '2026-11-23')).find((i) => i.id === event.id);
   expect(stored?.endTime).toBe('11:00');
 });
 
-test('없는 캘린더로 생성하면 400', async () => {
+test('없는 캘린더로 생성하면 422', async () => {
   const res = await send('POST', '/api/items', eventInput('nope'));
-  expect(res.status).toBe(400);
-  const body = (await res.json()) as { message: string };
-  expect(body.message).toBe('캘린더를 찾을 수 없습니다');
+  expect(res.status).toBe(422);
+  expectProblemContentType(res);
+  const body = (await res.json()) as Problem;
+  expect(body.type).toBe('/problems/calendar-not-found');
+  expect(body.detail).toBe('캘린더를 찾을 수 없습니다');
 });
 
 test('없는 항목 PATCH는 404', async () => {
   const res = await send('PATCH', '/api/items/nope', { title: '바꿈' });
   expect(res.status).toBe(404);
-  const body = (await res.json()) as { message: string };
-  expect(body.message).toBe('찾을 수 없습니다');
+  expectProblemContentType(res);
+  const body = (await res.json()) as Problem;
+  expect(body.type).toBe('/problems/not-found');
+  expect(body.detail).toBe('찾을 수 없습니다');
+  expect(body.title).toBe('Not Found');
+});
+
+test('기간 조회에 to가 없으면 400', async () => {
+  const res = await send('GET', '/api/items?from=2026-11-23');
+  expect(res.status).toBe(400);
+  expectProblemContentType(res);
+  const body = (await res.json()) as Problem;
+  expect(body.type).toBe('/problems/missing-parameter');
+  expect(body.detail).toBe('from, to가 필요합니다');
 });
 
 test('새로 만든 db는 localStorage에서 복원된다', () => {
