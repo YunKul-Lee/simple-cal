@@ -75,6 +75,41 @@ class CalendarApiTest extends ApiTestBase {
 	}
 
 	@Test
+	void 이름_타입이_틀리면_400() {
+		Res res = send("POST", "/api/calendars", Map.of("name", 5, "color", "#e08a2c"));
+
+		assertProblem(res, 400, "malformed-request", "요청 형식이 올바르지 않습니다");
+	}
+
+	@Test
+	void 색_타입이_틀리면_400() {
+		Res res = send("POST", "/api/calendars", Map.of("name", "회사", "color", 5));
+
+		assertProblem(res, 400, "malformed-request", "요청 형식이 올바르지 않습니다");
+	}
+
+	@Test
+	void 객체가_아닌_본문은_400() {
+		Res post = send("POST", "/api/calendars", "[]");
+		assertProblem(post, 400, "malformed-request", "요청 형식이 올바르지 않습니다");
+
+		String id = createCalendar("회사");
+		Res patch = send("PATCH", "/api/calendars/" + id, "[]");
+		assertProblem(patch, 400, "malformed-request", "요청 형식이 올바르지 않습니다");
+
+		Res list = send("GET", "/api/calendars", null);
+		assertThat(list.status()).isEqualTo(200);
+		JsonNode found = null;
+		for (JsonNode n : list.json()) {
+			if (id.equals(n.path("id").asString())) {
+				found = n;
+			}
+		}
+		assertThat(found).as("목록에 그 캘린더").isNotNull();
+		assertThat(found.path("name").asString()).isEqualTo("회사");
+	}
+
+	@Test
 	void PATCH는_보낸_필드만_바꾼다() {
 		String id = createCalendar("회사");
 
