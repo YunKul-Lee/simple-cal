@@ -256,7 +256,7 @@ frontend/
 - Consumes: `useCalendars`, `useCalendarMutations`, `createQueryClient`, `subscribeErrors`, `worker`
 - Produces:
   - `Sidebar({ calendars, onToggle(id: string, visible: boolean), onCreate(), onEdit(calendar: Calendar) })` — 제목 `'내 캘린더'`, `＋` 버튼(`aria-label="캘린더 추가"`), 각 행: 체크박스(`aria-label` = 캘린더 이름), 색 사각형, 이름, `⋯` 버튼(`aria-label="{이름} 편집"`).
-  - `CalendarFormDialog({ initial?: Calendar, onSubmit(input: CalendarInput), onDelete?(): void, onClose() })` — 이름 입력, 색은 팔레트 8색(`#4a7bd8 #3aa66a #e08a2c #d64545 #8e5bd8 #2a9d9d #c2569b #6b7280`) + `<input type="color">`. 빈 이름이면 `'이름을 입력해 주세요'`, 저장 막음. 삭제는 `window.confirm('캘린더와 안의 일정·할 일이 모두 삭제됩니다. 삭제할까요?')` 확인 후 `onDelete`.
+  - `CalendarFormDialog({ initial?: Calendar, onSubmit(input: CalendarInput), onDelete?(): void, onClose() })` — 이름 입력, 색은 팔레트 16색(`#4a7bd8 #3aa66a #e08a2c #d64545 #8e5bd8 #2a9d9d #c2569b #6b7280 #1e40af #15803d #ca8a04 #9f1239 #5b21b6 #0891b2 #db2777 #92400e` — 모두 흰 글자가 읽히는 진하기, 4열×4행 배치) + `<input type="color">`. 빈 이름이면 `'이름을 입력해 주세요'`, 저장 막음. 삭제는 `window.confirm('캘린더와 안의 일정·할 일이 모두 삭제됩니다. 삭제할까요?')` 확인 후 `onDelete`.
   - `Toast()` — `subscribeErrors`로 받은 메시지를 `role="alert"`로 4초 표시.
   - `App` — 2단 레이아웃(사이드바 220px + 본문). 이 태스크에서는 본문 자리 비워 둠(Task 6이 채움).
   - `main.tsx`: `if (import.meta.env.DEV && import.meta.env.VITE_MOCK !== 'off') { const { worker } = await import('./mocks/browser'); await worker.start({ onUnhandledRequest: 'bypass' }); }` 후 `QueryClientProvider`로 렌더.
