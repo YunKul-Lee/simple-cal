@@ -44,6 +44,7 @@ export function QuickCreatePopover({ slot, anchor, calendars, onCreate, onMore, 
   const [saving, setSaving] = useState(false)
 
   const noCalendars = calendars.length === 0
+  const selectedHidden = calendars.find((c) => c.id === calendarId)?.visible === false
   const canSave = !noCalendars && title.trim() !== '' && !saving
   const draft = () => buildDraft(slot, type, calendarId, title.trim())
 
@@ -102,6 +103,7 @@ export function QuickCreatePopover({ slot, anchor, calendars, onCreate, onMore, 
                 ))}
               </select>
             </label>
+            {selectedHidden && <p className="hint">숨긴 캘린더입니다. 저장하면 다시 표시됩니다</p>}
           </>
         )}
         <div className="modal-actions">

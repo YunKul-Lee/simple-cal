@@ -116,6 +116,15 @@ describe('itemsToEvents', () => {
     const item = task({ calendarId: 'c2', date: '2026-11-20' })
     expect(itemsToEvents([item], [item], calendars, today)).toEqual([])
   })
+
+  test('밀린 할 일은 정렬 순위 0, 나머지는 1', () => {
+    const overdue = task({ id: 't-over', date: '2026-11-20' })
+    const normal = task({ id: 't-normal', date: '2026-11-25' })
+    const result = itemsToEvents([overdue, normal], [overdue], calendars, today)
+    const byId = (id: string) => result.find((e) => e.id === id)!
+    expect(byId('t-over').extendedProps?.sortRank).toBe(0)
+    expect(byId('t-normal').extendedProps?.sortRank).toBe(1)
+  })
 })
 
 describe('changeToPatch', () => {

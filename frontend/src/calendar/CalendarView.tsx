@@ -95,6 +95,7 @@ export function CalendarView({
         editable
         selectable={false}
         events={events}
+        eventOrder="sortRank,start,-duration,allDay,title"
         eventContent={renderContent}
         eventClick={handleClick}
         eventDrop={handleChange}

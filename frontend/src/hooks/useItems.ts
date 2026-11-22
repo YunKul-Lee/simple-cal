@@ -1,10 +1,11 @@
-import { QueryClient, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { QueryCache, QueryClient, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { Item, ItemInput, ItemPatch } from '../types'
 import * as api from '../api/items'
 import { reportError } from '../lib/errorBus'
 
 export function createQueryClient(): QueryClient {
   return new QueryClient({
+    queryCache: new QueryCache({ onError: (err) => onMutationError(err) }),
     defaultOptions: { queries: { retry: false, refetchOnWindowFocus: false }, mutations: { retry: false } },
   })
 }

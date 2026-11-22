@@ -105,4 +105,16 @@ describe('QuickCreatePopover', () => {
     expect(onMore).toHaveBeenCalledWith(expect.objectContaining({ title: '회의', date: '2026-11-24' }))
     expect(onCreate).not.toHaveBeenCalled()
   })
+
+  test('숨긴 캘린더를 고르면 다시 표시된다고 안내한다', () => {
+    const hidden1 = { ...c1, visible: false }
+    const hidden2 = { ...c2, visible: false }
+    setup({ date: '2026-11-24', startTime: '14:00' }, [hidden1, hidden2])
+    expect(screen.getByText('숨긴 캘린더입니다. 저장하면 다시 표시됩니다')).toBeInTheDocument()
+  })
+
+  test('보이는 캘린더를 고르면 숨김 안내가 없다', () => {
+    setup({ date: '2026-11-24', startTime: '14:00' })
+    expect(screen.queryByText('숨긴 캘린더입니다. 저장하면 다시 표시됩니다')).not.toBeInTheDocument()
+  })
 })

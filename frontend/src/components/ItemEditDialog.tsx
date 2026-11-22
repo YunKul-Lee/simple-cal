@@ -18,13 +18,15 @@ export function ItemEditDialog({ item, draft, calendars, onSave, onDelete, onClo
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
+  // 하루 종일 여부는 체크박스로만 바뀐다 — 시간 입력을 지우는 도중에 바뀌면 안 된다
+  const [allDay, setAllDay] = useState(draft.startTime === null)
   const set = (patch: Partial<ItemInput>) => setValue((v) => ({ ...v, ...patch }))
-  const allDay = value.startTime === null
   const isEvent = value.type === 'event'
 
   const changeType = (to: ItemType) => set(convertTypePatch({ ...value, id: '' }, to))
 
   const toggleAllDay = (on: boolean) => {
+    setAllDay(on)
     if (on) set({ startTime: null, endTime: null })
     else set({ startTime: '09:00', endTime: isEvent ? '10:00' : null })
   }
@@ -36,6 +38,7 @@ export function ItemEditDialog({ item, draft, calendars, onSave, onDelete, onClo
       title: value.title.trim(),
       memo: value.memo?.trim() ? value.memo : null,
       endDate: value.endDate && value.endDate !== value.date ? value.endDate : null,
+      ...(allDay ? { startTime: null, endTime: null } : {}),
     }
     const message = validateItem(normalized)
     if (message) {
@@ -103,7 +106,7 @@ export function ItemEditDialog({ item, draft, calendars, onSave, onDelete, onClo
               <input
                 type="time"
                 value={value.startTime ?? ''}
-                onChange={(e) => set({ startTime: e.target.value || null })}
+                onChange={(e) => set({ startTime: e.target.value })}
               />
             </label>
           )}
@@ -129,7 +132,7 @@ export function ItemEditDialog({ item, draft, calendars, onSave, onDelete, onClo
                 <input
                   type="time"
                   value={value.endTime ?? ''}
-                  onChange={(e) => set({ endTime: e.target.value || null })}
+                  onChange={(e) => set({ endTime: e.target.value })}
                 />
               </label>
             )}

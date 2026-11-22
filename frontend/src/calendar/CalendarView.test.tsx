@@ -32,8 +32,8 @@ function setup(events: EventInput[]) {
     onToggleDone: vi.fn(),
     onItemChange: vi.fn().mockResolvedValue(undefined),
   }
-  render(<CalendarView events={events} initialDate="2026-11-25" {...props} />)
-  return { user: userEvent.setup(), ...props }
+  const { container } = render(<CalendarView events={events} initialDate="2026-11-25" {...props} />)
+  return { user: userEvent.setup(), container, ...props }
 }
 
 describe('CalendarView', () => {
@@ -68,5 +68,17 @@ describe('CalendarView', () => {
   test('처음 표시 범위를 알린다', async () => {
     const { onRangeChange } = setup(events)
     await waitFor(() => expect(onRangeChange).toHaveBeenCalledWith('2026-11-23', '2026-11-29'))
+  })
+
+  test('밀린 할 일이 오늘 하루 종일 줄 맨 위에 온다', async () => {
+    const normal = task({ id: 't-normal', title: '가나다', date: '2026-11-25' })
+    const overdue = task({ id: 't-over', title: '하하하', date: '2026-11-20' })
+    const { container } = setup(itemsToEvents([normal, overdue], [overdue], [c1], today))
+
+    await screen.findByText('하하하')
+    await screen.findByText('가나다')
+    const titles = Array.from(container.querySelectorAll('.task-title')).map((el) => el.textContent)
+    expect(titles.indexOf('하하하')).toBeGreaterThanOrEqual(0)
+    expect(titles.indexOf('하하하')).toBeLessThan(titles.indexOf('가나다'))
   })
 })

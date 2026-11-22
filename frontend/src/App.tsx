@@ -95,6 +95,8 @@ export default function App() {
           calendars={calendars}
           onClose={() => setQuick(null)}
           onCreate={async (input) => {
+            const target = calendars.find((c) => c.id === input.calendarId)
+            if (target && !target.visible) void calendarMut.update(target.id, { visible: true }).catch(() => {})
             await itemMut.create(input).catch(() => {})
             setQuick(null)
           }}
@@ -112,6 +114,8 @@ export default function App() {
           calendars={calendars}
           onClose={() => setEdit(null)}
           onSave={async (value) => {
+            const target = calendars.find((c) => c.id === value.calendarId)
+            if (target && !target.visible) void calendarMut.update(target.id, { visible: true }).catch(() => {})
             if (edit.item) await itemMut.update(edit.item.id, value)
             else await itemMut.create(value)
             setEdit(null)

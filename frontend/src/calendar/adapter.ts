@@ -2,7 +2,8 @@ import type { EventInput } from '@fullcalendar/core'
 import type { Calendar, Item, ItemPatch, ItemType } from '../types'
 import { addDays, addMinutes, toLocalDate, toLocalTime } from '../lib/dates'
 
-export type ItemEventProps = { item: Item; overdueFrom: string | null }
+/** sortRank: 밀린 할 일 0, 나머지 1 — 같은 날 안에서 밀린 할 일을 맨 위로 */
+export type ItemEventProps = { item: Item; overdueFrom: string | null; sortRank: number }
 
 const TASK_BLOCK_MINUTES = 30
 const DEFAULT_EVENT_MINUTES = 60
@@ -10,7 +11,7 @@ const DEFAULT_EVENT_MINUTES = 60
 const isOverdue = (item: Item, today: string) => item.type === 'task' && !item.done && item.date < today
 
 function toEvent(item: Item, color: string, overdueFrom: string | null, today: string): EventInput {
-  const extendedProps: ItemEventProps = { item, overdueFrom }
+  const extendedProps: ItemEventProps = { item, overdueFrom, sortRank: overdueFrom === null ? 1 : 0 }
   const base = { id: item.id, title: item.title, extendedProps }
 
   if (overdueFrom !== null) {

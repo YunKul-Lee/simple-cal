@@ -83,4 +83,17 @@ describe('ItemEditDialog', () => {
     expect(onDelete).toHaveBeenCalledTimes(1)
     expect(onSave).not.toHaveBeenCalled()
   })
+
+  test('시작 시간을 지워도 하루 종일로 바뀌지 않는다', async () => {
+    const { user, onSave } = setup(meeting)
+
+    fireEvent.change(screen.getByLabelText('시작 시간'), { target: { value: '' } })
+
+    expect(screen.getByLabelText('시작 시간')).toBeInTheDocument()
+    expect(screen.getByRole('checkbox', { name: '하루 종일' })).not.toBeChecked()
+
+    await user.click(screen.getByRole('button', { name: '저장' }))
+    expect(onSave).not.toHaveBeenCalled()
+    expect(screen.getByText('시간 형식이 올바르지 않습니다')).toBeInTheDocument()
+  })
 })
