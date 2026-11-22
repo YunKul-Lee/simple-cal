@@ -1,0 +1,10 @@
+# 로컬 개발용 PostgreSQL — 비밀번호는 로컬 전용 기본값
+services:
+  postgres:
+    image: 'postgres:18'
+    environment:
+      - 'POSTGRES_DB=simplecal'
+      - 'POSTGRES_USER=simplecal'
+      - 'POSTGRES_PASSWORD=simplecal'
+    ports:
+      - '5432:5432'
