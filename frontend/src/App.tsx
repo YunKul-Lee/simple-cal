@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react'
-import type { Calendar } from './types'
+import type { Calendar, Item, ItemInput } from './types'
 import { useCalendarMutations, useCalendars } from './hooks/useCalendars'
 import { useItemMutations, useItems, useOverdue } from './hooks/useItems'
-import { CalendarView } from './calendar/CalendarView'
+import { CalendarView, type Slot } from './calendar/CalendarView'
+import { QuickCreatePopover } from './components/QuickCreatePopover'
+import { ItemEditDialog } from './components/ItemEditDialog'
 import { changeToPatch, itemsToEvents } from './calendar/adapter'
 import { addDays, todayLocal } from './lib/dates'
 import { Sidebar } from './components/Sidebar'
@@ -17,6 +19,9 @@ function thisWeek(today: string): { from: string; to: string } {
   return { from, to: addDays(from, 6) }
 }
 
+type QuickCreate = { slot: Slot; anchor: { x: number; y: number } } | null
+type EditState = { item: Item | null; draft: ItemInput } | null
+
 type CalendarDialog = { mode: 'create' } | { mode: 'edit'; calendar: Calendar } | null
 
 export default function App() {
@@ -29,6 +34,8 @@ export default function App() {
   const items = useItems(range.from, range.to).data
   const overdue = useOverdue(today).data
   const itemMut = useItemMutations()
+  const [quick, setQuick] = useState<QuickCreate>(null)
+  const [edit, setEdit] = useState<EditState>(null)
   const events = useMemo(
     () => itemsToEvents(items ?? [], overdue ?? [], calendars, today),
     [items, overdue, calendars, today],
@@ -46,8 +53,12 @@ export default function App() {
         <CalendarView
           events={events}
           onRangeChange={(from, to) => setRange((r) => (r.from === from && r.to === to ? r : { from, to }))}
-          onSelectSlot={() => {}}
-          onItemClick={() => {}}
+          onSelectSlot={(slot, anchor) => setQuick({ slot, anchor })}
+          onItemClick={(item) => {
+            const { id: _id, ...draft } = item
+            void _id
+            setEdit({ item, draft })
+          }}
           onToggleDone={(item) => void itemMut.update(item.id, { done: !item.done }).catch(() => {})}
           onItemChange={async (item, change) => {
             await itemMut.update(item.id, changeToPatch(item, change))
@@ -73,6 +84,44 @@ export default function App() {
                     .remove(calendarDialog.calendar.id)
                     .then(() => setCalendarDialog(null))
                     .catch(() => {})
+              : undefined
+          }
+        />
+      )}
+      {quick && (
+        <QuickCreatePopover
+          slot={quick.slot}
+          anchor={quick.anchor}
+          calendars={calendars}
+          onClose={() => setQuick(null)}
+          onCreate={async (input) => {
+            await itemMut.create(input).catch(() => {})
+            setQuick(null)
+          }}
+          onMore={(draft) => {
+            setQuick(null)
+            setEdit({ item: null, draft })
+          }}
+        />
+      )}
+
+      {edit && (
+        <ItemEditDialog
+          item={edit.item}
+          draft={edit.draft}
+          calendars={calendars}
+          onClose={() => setEdit(null)}
+          onSave={async (value) => {
+            if (edit.item) await itemMut.update(edit.item.id, value)
+            else await itemMut.create(value)
+            setEdit(null)
+          }}
+          onDelete={
+            edit.item
+              ? async () => {
+                  await itemMut.remove(edit.item!.id)
+                  setEdit(null)
+                }
               : undefined
           }
         />

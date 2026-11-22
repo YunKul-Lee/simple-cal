@@ -1,32 +1,25 @@
-# React + TypeScript + Vite
+# simple-cal frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+개인용 일정 관리 웹앱의 프론트엔드. 설계는 [`../docs/superpowers/specs/2026-11-22-simple-cal-design.md`](../docs/superpowers/specs/2026-11-22-simple-cal-design.md).
 
-Currently, two official plugins are available:
+## 실행
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev     # 개발 서버 — MSW 가짜 API가 켜지고 데이터는 브라우저 localStorage에 저장
+npm test        # 테스트
+npm run build   # 프로덕션 빌드 (MSW 미포함)
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+가짜 데이터를 지우려면 브라우저 개발자 도구에서 `localStorage.removeItem('simple-cal:db')` 후 새로고침.
+
+## 스프링부트 백엔드 연결
+
+```bash
+VITE_MOCK=off VITE_API_TARGET=http://localhost:8080 npm run dev
+```
+
+- `VITE_MOCK=off` 이면 MSW를 시작하지 않고, `/api` 요청은 Vite 프록시를 통해 `VITE_API_TARGET`으로 간다.
+- API 계약은 설계 문서 **3.4** 절이 기준이다 (경로, 포함 범위 규칙, PATCH의 "빠진 필드 = 유지 / null = 비움", 오류 `{ "message": string }`).
+- 첫 실행 시 캘린더가 없으면 `{ name: '내 캘린더', color: '#4a7bd8', visible: true }` 하나를 만드는 규칙(`src/mocks/db.ts`)을 백엔드에서도 같게 구현한다.
+- MSW 핸들러(`src/mocks/handlers.ts`)와 그 테스트가 계약의 실행 가능한 예시다.

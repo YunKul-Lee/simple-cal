@@ -1,0 +1,4 @@
+.item-dialog .row { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; }
+.item-dialog .row .field { flex: 1; min-width: 120px; }
+.item-dialog .inline { display: flex; align-items: center; gap: 4px; cursor: pointer; padding-bottom: 6px; }
+.item-dialog textarea { resize: vertical; }
