@@ -1,3 +1,6 @@
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
 plugins {
 	java
 	id("org.springframework.boot") version "4.2.0"
@@ -35,4 +38,11 @@ dependencies {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+}
+
+tasks.named<org.springframework.boot.gradle.tasks.bundling.BootBuildImage>("bootBuildImage") {
+	val buildTime = LocalDateTime.now()
+		.format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"))
+	imageName = "simple-cal-backend:$buildTime"
+	tags = listOf("simple-cal-backend:latest")
 }

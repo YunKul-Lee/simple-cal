@@ -28,6 +28,21 @@ simple-cal의 스프링부트 + PostgreSQL 백엔드. 설계는 [`../docs/superp
 
 Testcontainers가 테스트마다 PostgreSQL 컨테이너를 띄우므로 Docker가 켜져 있어야 한다. Docker를 찾지 못하면 `DOCKER_HOST=unix://$HOME/.docker/run/docker.sock ./gradlew test`.
 
+## 컨테이너 이미지
+
+```bash
+./gradlew bootBuildImage
+```
+
+Dockerfile 없이 Cloud Native Buildpacks로 `simple-cal-backend:<빌드 시각>`(예: `20261123-095210`, 빌드한 컴퓨터의 현지 시각)과 `simple-cal-backend:latest`를 로컬 Docker에 만든다. 이미지에는 Docker Compose 지원이 없으므로 DB 접속 정보는 환경 변수로 준다.
+
+```bash
+docker run --rm -p 8080:8080 \
+  -e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/simplecal \
+  -e SPRING_DATASOURCE_USERNAME=simplecal -e SPRING_DATASOURCE_PASSWORD=simplecal \
+  simple-cal-backend:latest
+```
+
 ## 오류 응답
 
 모든 오류는 RFC 9457 Problem Details(`application/problem+json`)로 나간다. 읽을 수 없는 요청 400, 규칙 위반 422, 대상 없음 404. 오류 종류(`type`)와 한국어 문구(`detail`)는 설계서 3.4 표와 `common/ProblemType.java`가 기준이다.
