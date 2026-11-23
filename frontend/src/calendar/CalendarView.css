@@ -17,4 +17,4 @@
 .task-time { color: var(--muted); font-size: 11px; }
 .task-title { overflow: hidden; text-overflow: ellipsis; }
 .is-done .task-title { text-decoration: line-through; color: var(--muted); }
-.overdue-badge { color: #d64545; font-size: 11px; flex: none; }
+.overdue-badge { color: var(--danger); font-size: 11px; flex: none; }

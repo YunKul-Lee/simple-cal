@@ -11,9 +11,20 @@
   --primary-hover: var(--fc-forma-primary-over);
   --on-primary: var(--fc-forma-primary-foreground);
   --danger: #d64545;
+  --danger-bg: #b91c1c;
+  --on-danger: #ffffff;
   --radius: 4px;
   font-family: system-ui, -apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
   font-size: 14px; color: var(--text); background: var(--bg);
+  color-scheme: light;
+  accent-color: var(--primary);
+}
+/* 다크: 브라우저 기본 컨트롤(라디오·select·날짜·스크롤바)도 어둡게, 빨강은 어두운 바탕에서 읽히는 값 */
+:root[data-color-scheme='dark'] {
+  color-scheme: dark;
+  --danger: #f87171;
+  --danger-bg: #7f1d1d;
+  --on-danger: #fee2e2;
 }
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; margin: 0; }
