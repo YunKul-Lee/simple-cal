@@ -1,5 +1,5 @@
 .popover-backdrop { position: fixed; inset: 0; z-index: 40; }
-.popover { position: fixed; background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 8px 24px rgb(0 0 0 / 0.18); }
+.popover { position: fixed; background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 8px 24px rgb(0 0 0 / 0.12); }
 .type-toggle { display: flex; gap: 12px; }
 .type-toggle label { display: flex; align-items: center; gap: 4px; cursor: pointer; }
 .popover .hint { margin: 0; font-size: 12px; color: var(--muted); }

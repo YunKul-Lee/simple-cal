@@ -1,5 +1,5 @@
 import { expect, test, type Locator } from '@playwright/test'
-import { openApp, seedItem } from './helpers'
+import { allDayCell, openApp, seedItem } from './helpers'
 
 /** 첫 캘린더의 기본 색 #4a7bd8 */
 const CALENDAR_COLOR = 'rgb(74, 123, 216)'
@@ -68,4 +68,57 @@ test('월 보기에서 완료한 할 일은 캘린더 색으로 채워진다', a
   const check = page.locator('.sc-view-dayGridMonth').getByRole('checkbox', { name: '장보기 완료' })
   await expect(check).toBeChecked()
   expect(await css(check, 'background-color')).toBe(CALENDAR_COLOR)
+})
+
+test('앱 색이 Forma 기준이다', async ({ page }) => {
+  expect(await css(page.locator('body'), 'color')).toBe('rgb(3, 7, 18)')
+  expect(await css(page.locator('.sidebar'), 'border-right-color')).toBe('rgb(224, 224, 224)')
+})
+
+test('주요 버튼은 Forma 파랑, 모서리 4px', async ({ page }) => {
+  await allDayCell(page, '2026-11-24').click()
+
+  const popover = page.getByRole('dialog', { name: '새 항목' })
+  await expect(popover).toBeVisible()
+  expect(await css(popover, 'background-color')).toBe('rgb(255, 255, 255)')
+  expect(await css(popover, 'border-radius')).toBe('4px')
+
+  // 저장 버튼은 제목이 없으면 disabled라 — 제목을 넣어 활성 상태의 색을 본다
+  await popover.getByLabel('제목').fill('색 확인')
+  const save = popover.locator('button.primary')
+  await expect(save).toBeEnabled()
+  expect(await css(save, 'background-color')).toBe('rgb(15, 108, 189)')
+})
+
+test('다크 표시를 붙이면 앱 색이 함께 바뀐다', async ({ page }) => {
+  await page.evaluate(() => document.documentElement.setAttribute('data-color-scheme', 'dark'))
+
+  const body = page.locator('body')
+  await expect.poll(() => css(body, 'background-color')).toBe('rgb(3, 7, 18)')
+  expect(await css(body, 'color')).toBe('rgb(255, 255, 255)')
+})
+
+test('오류 토스트는 바탕과 구분된다', async ({ page }) => {
+  // e2e의 API는 MSW 서비스 워커가 페이지 안에서 응답하므로 page.route로는 가로챌 수 없다
+  // (요청이 Playwright 네트워크 층까지 오지 않는다). 대신 팝오버를 연 뒤 그 캘린더를 API로 지워
+  // 저장 요청이 422(calendar-not-found)로 실패하게 만든다 — 모든 mutation 오류는 같은 토스트로 뜬다.
+  await allDayCell(page, '2026-11-24').click()
+  const popover = page.getByRole('dialog', { name: '새 항목' })
+  await expect(popover).toBeVisible()
+  await popover.getByLabel('제목').fill('실패할 항목')
+
+  await page.evaluate(async () => {
+    const calendars: { id: string }[] = await fetch('/api/calendars').then((r) => r.json())
+    for (const c of calendars) {
+      const r = await fetch(`/api/calendars/${c.id}`, { method: 'DELETE' })
+      if (!r.ok) throw new Error(`DELETE /api/calendars ${r.status}`)
+    }
+  })
+  await popover.getByLabel('제목').press('Enter')
+
+  const toast = page.getByRole('alert')
+  await expect(toast).toBeVisible()
+  const bodyBg = await css(page.locator('body'), 'background-color')
+  expect(await css(toast, 'background-color')).not.toBe(bodyBg)
+  expect(await css(toast, 'border-radius')).toBe('4px')
 })

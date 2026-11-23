@@ -2,7 +2,7 @@
 .sidebar-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
 .sidebar-header h2 { font-size: 14px; margin: 0; }
 .calendar-list { list-style: none; margin: 0; padding: 0; }
-.calendar-row { display: flex; align-items: center; justify-content: space-between; padding: 4px 0; }
+.calendar-row { border-radius: var(--radius); padding-inline: 4px; display: flex; align-items: center; justify-content: space-between; padding: 4px 0; }
 .calendar-row label { display: flex; align-items: center; gap: 6px; cursor: pointer; min-width: 0; }
 .calendar-row .swatch { width: 12px; height: 12px; border-radius: 3px; flex: none; }
 .calendar-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

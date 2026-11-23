@@ -1,13 +1,29 @@
+/* 앱 색은 Forma 팔레트 변수(--fc-forma-*, main.tsx에서 불러옴)를 가리킨다.
+   <html data-color-scheme="dark">를 붙이면 팔레트가 다크 값으로 바뀌고 앱 전체가 따라간다(이후 테마 기능). */
 :root {
-  --bg: #ffffff; --panel: #f7f7f8; --line: #e3e3e6; --text: #1f2328; --muted: #6b7280;
-  --primary: #4a7bd8; --danger: #d64545;
+  --bg: var(--fc-forma-background);
+  --panel: var(--fc-forma-faint);
+  --hover: var(--fc-forma-muted);
+  --line: var(--fc-forma-border);
+  --text: var(--fc-forma-foreground);
+  --muted: var(--fc-forma-muted-foreground);
+  --primary: var(--fc-forma-primary);
+  --primary-hover: var(--fc-forma-primary-over);
+  --on-primary: var(--fc-forma-primary-foreground);
+  --danger: #d64545;
+  --radius: 4px;
   font-family: system-ui, -apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
   font-size: 14px; color: var(--text); background: var(--bg);
 }
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; margin: 0; }
-button { font: inherit; cursor: pointer; border: 1px solid var(--line); background: #fff; border-radius: 6px; padding: 6px 12px; }
-button.primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+body { background: var(--bg); color: var(--text); }
+button { font: inherit; color: inherit; cursor: pointer; border: 1px solid var(--line); background: var(--bg); border-radius: var(--radius); padding: 6px 12px; }
+button:hover:not(:disabled) { background: var(--hover); }
+button:disabled { cursor: default; opacity: 0.5; }
+button.primary { background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
+button.primary:hover:not(:disabled) { background: var(--primary-hover); border-color: var(--primary-hover); }
 button.danger { color: var(--danger); border-color: var(--danger); }
 .icon-button { border: none; background: none; padding: 2px 6px; font-size: 16px; color: var(--muted); }
-input, select, textarea { font: inherit; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; }
+input, select, textarea { font: inherit; color: inherit; background: var(--bg); padding: 6px 8px; border: 1px solid var(--line); border-radius: var(--radius); }
+input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--primary); outline-offset: -1px; }
