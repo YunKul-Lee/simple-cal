@@ -1,20 +1,42 @@
 .calendar-view { flex: 1; min-height: 0; }
-/* 오늘 칸 배경은 v6 때 값 그대로 (Classic 기본은 노란색) */
-.calendar-view { --fc-classic-today: rgb(74 123 216 / 0.06); }
 
-/* 할 일(주·월 보기): 투명 배경 + 왼쪽 캘린더 색 테두리. 테마 클래스보다 우선하도록 두 번 씀.
-   목록 보기는 행 구분선·hover·점을 테마 그대로 둔다 (v6와 같은 모양) */
+/* 할 일(주·월 보기): 막대 없이 투명 — 캘린더 색은 체크박스로만 보인다.
+   테마 클래스보다 우선하도록 두 번 씀. 목록 보기는 테마 기본 행 그대로 */
 .sc-view:not(.sc-view-listWeek) .item-task.item-task {
   background: transparent;
-  border-width: 0 0 0 3px;
-  border-style: solid;
-  border-color: var(--fc-event-color);
+  border-width: 0;
   color: var(--text);
 }
 /* 주 보기 블록 안 글자는 일정 블록과 같은 크기로 */
 .sc-view-timeGridWeek .task-content { font-size: 12px; }
 .task-content { display: flex; align-items: center; gap: 4px; padding: 1px 2px; overflow: hidden; white-space: nowrap; color: var(--text); }
-.task-check { margin: 0; cursor: pointer; flex: none; }
+
+/* 할 일 체크박스: 네이티브 checkbox(키보드·스크린리더 그대로)에 모양만 입힌다.
+   테두리와 체크 채움은 캘린더 색(이벤트마다 v7이 넣는 --fc-event-color) */
+.task-check {
+  appearance: none;
+  flex: none;
+  width: 13px;
+  height: 13px;
+  margin: 0;
+  border: 1.5px solid var(--fc-event-color);
+  border-radius: 3px;
+  background: var(--bg, #fff);
+  display: inline-grid;
+  place-content: center;
+  cursor: pointer;
+}
+.task-check:checked { background: var(--fc-event-color); }
+.task-check:checked::after {
+  content: '';
+  width: 7px;
+  height: 4px;
+  border: solid #fff;
+  border-width: 0 0 2px 2px;
+  transform: translate(0, -1px) rotate(-45deg);
+}
+.task-check:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+
 .task-time { color: var(--muted); font-size: 11px; }
 .task-title { overflow: hidden; text-overflow: ellipsis; }
 .is-done .task-title { text-decoration: line-through; color: var(--muted); }

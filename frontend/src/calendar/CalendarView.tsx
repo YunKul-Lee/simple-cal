@@ -3,12 +3,9 @@ import dayGridPlugin from '@fullcalendar/react/daygrid'
 import timeGridPlugin from '@fullcalendar/react/timegrid'
 import listPlugin from '@fullcalendar/react/list'
 import interactionPlugin from '@fullcalendar/react/interaction'
-import classicTheme from '@fullcalendar/react/themes/classic'
+import formaTheme from '@fullcalendar/react/themes/forma'
 import koLocale from '@fullcalendar/react/locales/ko'
 import type { DateClickInfo, EventChangeInfo, EventClickInfo, EventDisplayInfo, EventInput } from '@fullcalendar/react'
-import '@fullcalendar/react/skeleton.css'
-import '@fullcalendar/react/themes/classic/theme.css'
-import '@fullcalendar/react/themes/classic/palette.css'
 import type { Item } from '../types'
 import type { ItemEventProps } from './adapter'
 import { addDays, toLocalDate, toLocalTime } from '../lib/dates'
@@ -106,7 +103,7 @@ export function CalendarView({
   return (
     <div className="calendar-view">
       <FullCalendar
-        plugins={[classicTheme, dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
+        plugins={[formaTheme, dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
         colorScheme={colorScheme}
         // 테마와 무관한 훅 클래스 — v7은 .fc-* 클래스를 붙이지 않으므로 e2e와 우리 CSS가 이것으로 요소를 고른다
         viewClass={(info) => `sc-view sc-view-${info.view.type}`}

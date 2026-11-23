@@ -135,9 +135,11 @@ test('목록 보기에서 할 일 행도 일정 행과 같은 구분선·글자 
   const style = (loc: typeof eventRow, prop: string) =>
     loc.evaluate((el, p) => getComputedStyle(el).getPropertyValue(p), prop)
 
-  const eventBorder = await style(eventRow, 'border-top-width')
-  expect(eventBorder).not.toBe('0px')
-  expect(await style(taskRow, 'border-top-width')).toBe(eventBorder)
+  // Forma 목록 보기는 행 구분선이 원래 없다(0px) — 두께가 0이 아님을 따지지 않고
+  // 할 일 행의 위 테두리가 일정 행과 두께·모양·색까지 같은지만 본다
+  for (const prop of ['border-top-width', 'border-top-style', 'border-top-color']) {
+    expect(await style(taskRow, prop), prop).toBe(await style(eventRow, prop))
+  }
 
   const eventTitle = eventRow.getByText('회의', { exact: true })
   const taskTitle = taskRow.locator('.task-title')
