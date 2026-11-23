@@ -19,12 +19,12 @@ tools: Read, Glob, Grep, Bash, Write, Edit
    - 백엔드: JUnit 5 + AssertJ, `backend/src/test/java/com/simplecal/...`. 테스트 메서드 이름은 계획의 한국어 이름 그대로.
 2. 테스트가 쓰는 import 경로·클래스·메서드 이름·타입은 Interfaces 블록을 그대로 따른다. 없는 이름을 지어내지 않는다.
 3. 실행해 **올바른 이유로** 실패하는지 확인한다(아직 없는 클래스·메서드로 인한 컴파일 실패, 기대값 불일치). 문법 오류·설정 오류로 실패하면 고친다.
-   - 프론트: `cd frontend && npx vitest run <파일들>`
+   - 프론트: `cd frontend && pnpm exec vitest run <파일들>`
    - 백엔드: `cd backend && ./gradlew test --tests '<클래스>'` (출력이 길면 파일로 받아 끝부분과 실패 부분만 읽는다)
 4. 테스트 지원 코드(프론트 `vitest.setup.ts`, 백엔드 `src/test` 아래 헬퍼·설정)만 추가할 수 있다. 제품 코드(`frontend/src`의 테스트 아닌 파일, `backend/src/main`)는 만들거나 고치지 않는다.
 
 **verify 모드** (요청에 "verify Task N"):
-1. 프론트: `cd frontend && npm test` 와 `npm run build`. 백엔드: `cd backend && ./gradlew test`.
+1. 프론트: `cd frontend && pnpm test` 와 `pnpm build`. 백엔드: `cd backend && ./gradlew test`.
 2. 실패가 있으면 테스트를 고쳐서 통과시키지 말고, 실패한 테스트 이름·기대값·실제값·원인 추정을 보고한다.
 3. 해당 Task 테스트가 계획의 assertion을 빠짐없이 담고 있는지 확인한다.
 

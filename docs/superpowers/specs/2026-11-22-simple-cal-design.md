@@ -46,7 +46,7 @@ simple-cal/
 - React + TypeScript + Vite
 - 달력 화면: FullCalendar (`@fullcalendar/react`, daygrid / timegrid / list / interaction 플러그인)
 - 가짜 API: MSW(Mock Service Worker). 화면 코드는 처음부터 `fetch('/api/...')`로 실제 서버처럼 호출하고, MSW 핸들러가 응답한다. MSW 핸들러는 데이터를 `localStorage`에 저장해 새로고침 후에도 유지한다.
-- (사용자 결정) 백엔드 전까지는 만들면서 확인하는 용도로만 쓴다. MSW는 개발 모드(`npm run dev`)에서만 켜고, 프로덕션 빌드에는 넣지 않는다. 브라우저 저장소의 데이터를 백엔드로 옮기는 기능은 만들지 않는다.
+- (사용자 결정) 백엔드 전까지는 만들면서 확인하는 용도로만 쓴다. MSW는 개발 모드(`pnpm dev`)에서만 켜고, 프로덕션 빌드에는 넣지 않는다. 브라우저 저장소의 데이터를 백엔드로 옮기는 기능은 만들지 않는다.
 - 백엔드 연결 시: MSW를 끄고 `/api`를 스프링부트 서버로 프록시(Vite dev proxy)하면 된다.
 
 ### 3.2 데이터 모델

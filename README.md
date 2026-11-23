@@ -29,8 +29,8 @@ simple-cal/
 
 ```bash
 cd frontend
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
 MSW 가짜 API가 켜지고 데이터는 브라우저 `localStorage`에 저장된다.
@@ -46,14 +46,14 @@ cd backend
 
 # 터미널 2 — /api 요청이 Vite 프록시를 거쳐 백엔드로 간다
 cd frontend
-VITE_MOCK=off npm run dev
+VITE_MOCK=off pnpm dev
 ```
 
 ## 테스트
 
 ```bash
-cd frontend && npm test           # 단위 테스트 (Vitest)
-cd frontend && npm run test:e2e   # 브라우저 e2e (Playwright) — 처음엔 npx playwright install chromium
+cd frontend && pnpm test           # 단위 테스트 (Vitest)
+cd frontend && pnpm test:e2e   # 브라우저 e2e (Playwright) — 처음엔 pnpm exec playwright install chromium
 cd backend  && ./gradlew test     # 백엔드 테스트 (Testcontainers, Docker 필요)
 ```
 

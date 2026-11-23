@@ -38,7 +38,7 @@
 ```
 frontend/
 ├── index.html, package.json, vite.config.ts, tsconfig*.json
-├── public/mockServiceWorker.js          (npx msw init 생성물)
+├── public/mockServiceWorker.js          (pnpm exec msw init 생성물)
 └── src/
     ├── main.tsx                         개발 모드면 MSW 시작 후 렌더
     ├── App.tsx / App.css                레이아웃·상태 조합
@@ -96,7 +96,7 @@ frontend/
   - `compareDateTime(aDate: string, aTime: string | null, bDate: string, bTime: string | null): number` — 음수/0/양수, 시간 null은 `00:00`
 - Produces (`lib/validateItem.ts`): `validateItem(input: ItemInput): string | null` — 오류 메시지(한국어) 또는 null
 
-- [ ] **Step 1: 골격 생성** — 루트에서 `git checkout -b feat/frontend`, `npm create vite@latest frontend -- --template react-ts`, `cd frontend && npm i`, `npm i -D vitest jsdom @testing-library/react @testing-library/jest-dom @testing-library/user-event`. `vite.config.ts`에 `test: { environment: 'jsdom', setupFiles: ['./vitest.setup.ts'], globals: true }`, setup 파일은 `import '@testing-library/jest-dom/vitest'`. `package.json`에 `"test": "vitest run"`. 템플릿 데모 코드(App 카운터, 로고 자산)는 지운다.
+- [ ] **Step 1: 골격 생성** — 루트에서 `git checkout -b feat/frontend`, `pnpm create vite frontend --template react-ts`, `cd frontend && pnpm install`, `pnpm add -D vitest jsdom @testing-library/react @testing-library/jest-dom @testing-library/user-event`. `vite.config.ts`에 `test: { environment: 'jsdom', setupFiles: ['./vitest.setup.ts'], globals: true }`, setup 파일은 `import '@testing-library/jest-dom/vitest'`. `package.json`에 `"test": "vitest run"`. 템플릿 데모 코드(App 카운터, 로고 자산)는 지운다.
 
 - [ ] **Step 2: 실패하는 테스트 작성** — `dates.test.ts`:
   ```ts
@@ -129,9 +129,9 @@ frontend/
   - 할 일 `endTime: '11:00'` 또는 `endDate` 비-null → `'할 일에는 종료를 지정할 수 없습니다'`
   - 하루 종일 이벤트(시작·종료 시간 null, `endDate: '2026-11-25'`) → `null`
 
-- [ ] **Step 3: 실행해 실패 확인** — `npm test` → 모듈 없음으로 FAIL.
+- [ ] **Step 3: 실행해 실패 확인** — `pnpm test` → 모듈 없음으로 FAIL.
 - [ ] **Step 4: `types.ts`, `dates.ts`, `validateItem.ts` 구현** — 날짜 계산은 `new Date(y, m-1, d)` 로컬 생성자로; 형식 검사는 `/^\d{4}-\d{2}-\d{2}$/`, `/^\d{2}:\d{2}$/`.
-- [ ] **Step 5: 통과 확인** — `npm test` → PASS. `npm run build` 성공.
+- [ ] **Step 5: 통과 확인** — `pnpm test` → PASS. `pnpm build` 성공.
 - [ ] **Step 6: Commit** — `git add frontend && git commit -m "feat(frontend): scaffold Vite app with types, date utils, item validation"`
 
 ---
@@ -150,7 +150,7 @@ frontend/
   - `createHandlers(db: Db): HttpHandler[]` — 스펙 3.4의 9개 엔드포인트. 성공: GET/PATCH 200, POST 201, DELETE 204. 없는 id 404 `{message:'찾을 수 없습니다'}`. 유효성 실패 400 `{message}`.
   - `browser.ts`: `export const worker = setupWorker(...createHandlers(createDb(localStorage)))`
 
-- [ ] **Step 1: 설치** — `npm i -D msw`, `npx msw init public --save`.
+- [ ] **Step 1: 설치** — `pnpm add -D msw`, `pnpm exec msw init public --save`.
 - [ ] **Step 2: 실패하는 테스트 작성** — `msw/node`의 `setupServer(...createHandlers(createDb(memoryStorage(), seqId)))`로 `fetch('http://localhost/api/...')` 호출. `memoryStorage()`는 테스트 파일 안의 간단한 `Storage` 구현. 테스트:
   - `첫 실행이면 '내 캘린더'를 시드한다` — GET `/api/calendars` → 길이 1, name `'내 캘린더'`
   - `캘린더 생성·수정` — POST `{name:'회사', color:'#e08a2c'}` → 201, `visible: true`; PATCH `{visible:false}` → name 유지, visible false
@@ -162,9 +162,9 @@ frontend/
   - `없는 캘린더로 생성하면 400` — `calendarId:'nope'` → 400 `'캘린더를 찾을 수 없습니다'`
   - `없는 항목 PATCH는 404`
   - `새로 만든 db는 localStorage에서 복원된다` — 같은 storage로 `createDb`를 두 번, 두 번째에서 첫 번째가 만든 캘린더가 보임
-- [ ] **Step 3: 실패 확인** — `npm test -- handlers` → FAIL.
+- [ ] **Step 3: 실패 확인** — `pnpm test handlers` → FAIL.
 - [ ] **Step 4: `db.ts`, `handlers.ts`, `browser.ts` 구현** — 모든 변경 후 storage에 저장. PATCH는 `{...existing, ...patch}` 병합 후 `validateItem`(`id` 제외)으로 검사.
-- [ ] **Step 5: 통과 확인** — `npm test` → PASS.
+- [ ] **Step 5: 통과 확인** — `pnpm test` → PASS.
 - [ ] **Step 6: Commit** — `git commit -m "feat(frontend): add localStorage mock DB and MSW REST handlers"`
 
 ---
@@ -187,16 +187,16 @@ frontend/
   - 낙관적 갱신: `update`(항목·캘린더 모두)는 `onMutate`에서 해당 id를 모든 `['items']`/`['overdue']`(또는 `['calendars']`) 캐시에 패치 적용, `onError`에서 스냅샷 복원 + `reportError(err.message)`, `onSettled`에서 `['items']`, `['overdue']` 무효화(캘린더 삭제 시에도). `create`/`remove`는 비낙관적, 실패 시 `reportError`.
   - `createQueryClient(): QueryClient` (`hooks/useItems.ts`에서 export, `retry: false` for mutations)
 
-- [ ] **Step 1: 설치** — `npm i @tanstack/react-query`.
+- [ ] **Step 1: 설치** — `pnpm add @tanstack/react-query`.
 - [ ] **Step 2: 실패하는 테스트 작성** —
   - `client.test.ts`: MSW node 서버에 임시 핸들러. `400 {message:'x'}` → `ApiError` with `status 400`, `message 'x'`; 본문 없는 500 → `message '요청에 실패했습니다'`; 204 → `undefined`.
   - `useItems.test.tsx` (Task 2 핸들러를 쓰는 MSW 서버 + `QueryClientProvider` 래퍼, `renderHook`):
     - `update는 서버 응답 전에 캐시에 반영된다` — 서버 핸들러를 지연(`delay(50)`)시키고 `update(id, {done:true})` 호출 직후 `useItems` 결과의 해당 항목 `done === true`
     - `update 실패 시 원래 값으로 되돌리고 오류를 알린다` — PATCH가 500 `{message:'서버 오류'}`를 주도록 `server.use` 재정의; 완료 후 `done === false`, `subscribeErrors` 리스너가 `'서버 오류'`를 받음
     - `밀린 할 일 완료 후 overdue 쿼리가 다시 조회된다` — 완료 후 `useOverdue('2026-11-22')` 결과에서 사라짐
-- [ ] **Step 3: 실패 확인** — `npm test` → FAIL.
+- [ ] **Step 3: 실패 확인** — `pnpm test` → FAIL.
 - [ ] **Step 4: 구현**
-- [ ] **Step 5: 통과 확인** — `npm test` → PASS.
+- [ ] **Step 5: 통과 확인** — `pnpm test` → PASS.
 - [ ] **Step 6: Commit** — `git commit -m "feat(frontend): add API client, query hooks with optimistic updates, error bus"`
 
 ---
@@ -238,8 +238,8 @@ frontend/
   - `changeToPatch: 여러 날 하루 종일 일정 길이 조절` — `start 11-27, end 11-30 (배타적), allDay` → `endDate '2026-11-29'`
   - `changeToPatch: 할 일은 종료를 갖지 않는다` — 하루 종일 할 일을 10:00 칸으로 → `{startTime:'10:00', endDate:null, endTime:null}`
   - `convertTypePatch` — 이벤트→할 일 `{type:'task', endDate:null, endTime:null, done:false}`; 시간 있는 할 일(15:00)→이벤트 `endTime '16:00', endDate null`; 하루 종일 할 일→이벤트 `endTime null`
-- [ ] **Step 2: 실패 확인** — `npm test -- adapter` → FAIL.
-- [ ] **Step 3: `adapter.ts` 구현** — `npm i @fullcalendar/core`(타입 `EventInput`용).
+- [ ] **Step 2: 실패 확인** — `pnpm test adapter` → FAIL.
+- [ ] **Step 3: `adapter.ts` 구현** — `pnpm add @fullcalendar/core`(타입 `EventInput`용).
 - [ ] **Step 4: 통과 확인** — PASS.
 - [ ] **Step 5: Commit** — `git commit -m "feat(frontend): add FullCalendar adapter for items, drags and type conversion"`
 
@@ -268,7 +268,7 @@ frontend/
   - `Toast`: `reportError('저장 실패')` → `role="alert"`에 `'저장 실패'`; `vi.useFakeTimers()`로 4초 후 사라짐
 - [ ] **Step 2: 실패 확인** — FAIL.
 - [ ] **Step 3: 구현** — App에서 사이드바 토글은 `update(id, {visible})`.
-- [ ] **Step 4: 통과 확인 + 수동 확인** — `npm test` PASS. `npm run dev` → 사이드바에 `'내 캘린더'`, 캘린더 추가/이름·색 변경/숨김이 새로고침 후에도 유지. 개발자 도구 콘솔에 `[MSW] Mocking enabled.`
+- [ ] **Step 4: 통과 확인 + 수동 확인** — `pnpm test` PASS. `pnpm dev` → 사이드바에 `'내 캘린더'`, 캘린더 추가/이름·색 변경/숨김이 새로고침 후에도 유지. 개발자 도구 콘솔에 `[MSW] Mocking enabled.`
 - [ ] **Step 5: Commit** — `git commit -m "feat(frontend): app shell with MSW dev mode, sidebar, calendar management, error toast"`
 
 ---
@@ -292,7 +292,7 @@ frontend/
   - CSS: `.item-task` 배경 투명·왼쪽 테두리 3px 캘린더 색·글자색 기본; `.is-done` 줄긋기 + 회색; `.is-overdue .overdue-badge` 작게 빨간색.
   - App: `range` 상태(기본 이번 주) → `useItems(range.from, range.to)`, `useOverdue(today)`, `itemsToEvents(...)`; `onToggleDone(item) = update(item.id, {done: !item.done})`; `onItemChange = update(item.id, changeToPatch(item, change))`. `onSelectSlot`/`onItemClick`은 Task 7 전까지 no-op.
 
-- [ ] **Step 1: 설치** — `npm i @fullcalendar/react @fullcalendar/daygrid @fullcalendar/timegrid @fullcalendar/list @fullcalendar/interaction`.
+- [ ] **Step 1: 설치** — `pnpm add @fullcalendar/react @fullcalendar/daygrid @fullcalendar/timegrid @fullcalendar/list @fullcalendar/interaction`.
 - [ ] **Step 2: 실패하는 테스트 작성** — `initialDate="2026-11-25"`, 하루 종일 할 일 `'보고서'` 하나(`itemsToEvents`로 만든 이벤트):
   - `할 일은 체크박스와 함께 보인다` — `getByRole('checkbox', {name:'보고서 완료'})`
   - `체크박스 클릭은 완료 토글만 하고 편집을 열지 않는다` — 클릭 → `onToggleDone` 1회, `onItemClick` 0회
@@ -302,7 +302,7 @@ frontend/
   (jsdom에 `ResizeObserver`가 없으면 `vitest.setup.ts`에 빈 polyfill 추가.)
 - [ ] **Step 3: 실패 확인** — FAIL.
 - [ ] **Step 4: 구현**
-- [ ] **Step 5: 통과 확인 + 수동 확인** — `npm test` PASS. `npm run dev`에서 (빠른 입력 창은 Task 7이므로) 브라우저 콘솔의 `fetch('/api/items',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...})})`로 일정·할 일·여러 날 일정·지난 미완료 할 일을 넣고 확인: 주간 기본, 주/월/목록 전환, 할 일 체크/줄긋기, 밀린 할 일이 오늘 줄에, 드래그 이동·길이 조절·하루 종일 줄↔시간 칸 이동 후 새로고침해도 유지, 캘린더 숨김 시 사라짐.
+- [ ] **Step 5: 통과 확인 + 수동 확인** — `pnpm test` PASS. `pnpm dev`에서 (빠른 입력 창은 Task 7이므로) 브라우저 콘솔의 `fetch('/api/items',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...})})`로 일정·할 일·여러 날 일정·지난 미완료 할 일을 넣고 확인: 주간 기본, 주/월/목록 전환, 할 일 체크/줄긋기, 밀린 할 일이 오늘 줄에, 드래그 이동·길이 조절·하루 종일 줄↔시간 칸 이동 후 새로고침해도 유지, 캘린더 숨김 시 사라짐.
 - [ ] **Step 6: Commit** — `git commit -m "feat(frontend): week/month/list calendar view with tasks, overdue and drag editing"`
 
 ---
@@ -339,11 +339,11 @@ frontend/
     - `삭제 확인 후 onDelete`
 - [ ] **Step 2: 실패 확인** — FAIL.
 - [ ] **Step 3: 구현**
-- [ ] **Step 4: 통과 확인 + 수동 확인** — `npm test` PASS, `npm run build` 성공. `npm run dev`에서 빈 시간 칸/하루 종일 줄 클릭으로 일정·할 일 만들기, "자세히"→편집 창, 항목 클릭→수정·삭제·타입 전환, 캘린더 삭제 시 소속 항목 사라짐 확인.
+- [ ] **Step 4: 통과 확인 + 수동 확인** — `pnpm test` PASS, `pnpm build` 성공. `pnpm dev`에서 빈 시간 칸/하루 종일 줄 클릭으로 일정·할 일 만들기, "자세히"→편집 창, 항목 클릭→수정·삭제·타입 전환, 캘린더 삭제 시 소속 항목 사라짐 확인.
 - [ ] **Step 5: Commit** — `git commit -m "feat(frontend): quick create popover and item edit dialog"`
 
 ---
 
 ## 백엔드 연결 메모 (구현 대상 아님 — 사용자가 나중에 참고)
 
-`frontend/README.md`를 Task 7 커밋에 포함: 스프링부트 연결 시 `VITE_MOCK=off VITE_API_TARGET=http://localhost:8080 npm run dev`로 MSW를 끄고 프록시를 쓴다는 것, API 계약은 스펙 3.4가 기준이라는 것, 첫 실행 시드("내 캘린더")는 백엔드에서도 같은 규칙으로 만들어야 한다는 것을 적는다.
+`frontend/README.md`를 Task 7 커밋에 포함: 스프링부트 연결 시 `VITE_MOCK=off VITE_API_TARGET=http://localhost:8080 pnpm dev`로 MSW를 끄고 프록시를 쓴다는 것, API 계약은 스펙 3.4가 기준이라는 것, 첫 실행 시드("내 캘린더")는 백엔드에서도 같은 규칙으로 만들어야 한다는 것을 적는다.

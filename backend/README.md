@@ -18,7 +18,7 @@ simple-cal의 스프링부트 + PostgreSQL 백엔드. 설계는 [`../docs/superp
 - DB 접속 정보(로컬 전용): DB `simplecal`, 사용자 `simplecal`, 비밀번호 `simplecal`.
 - 데이터를 비우려면 `docker compose down -v`.
 
-화면과 연결: 백엔드를 띄운 뒤 `../frontend`에서 `VITE_MOCK=off npm run dev`.
+화면과 연결: 백엔드를 띄운 뒤 `../frontend`에서 `VITE_MOCK=off pnpm dev`.
 
 ## 테스트
 

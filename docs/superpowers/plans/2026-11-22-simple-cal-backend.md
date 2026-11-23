@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 프론트엔드의 MSW 가짜 API와 똑같이 동작하는 스프링부트 + PostgreSQL 백엔드를 만들고, 오류 응답을 RFC 9457 Problem Details + 세분화한 상태 코드로 바꿔(백엔드·MSW·화면 모두), `VITE_MOCK=off npm run dev`로 화면이 실제 백엔드에서 모두 동작하게 한다.
+**Goal:** 프론트엔드의 MSW 가짜 API와 똑같이 동작하는 스프링부트 + PostgreSQL 백엔드를 만들고, 오류 응답을 RFC 9457 Problem Details + 세분화한 상태 코드로 바꿔(백엔드·MSW·화면 모두), `VITE_MOCK=off pnpm dev`로 화면이 실제 백엔드에서 모두 동작하게 한다.
 
 **Architecture:** `backend/`에 스프링부트 앱 하나. 기능별 패키지(`calendar`, `item`, `common`)에 엔티티·저장소·서비스·컨트롤러를 둔다. API JSON의 날짜·시간은 DTO에서 **문자열**로 주고받아(`YYYY-MM-DD`, `HH:mm`) 직렬화 모양을 고정하고, 검증은 MSW의 `validateItem`을 옮긴 순수 클래스 `ItemValidator` 한 곳에서 한다. 모든 오류 종류는 `common/ProblemType` enum 한 곳(상태·`type`·`detail`)에 모으고, 전역 예외 처리기가 Spring `ProblemDetail`로 내보낸다. PATCH는 Jackson `JsonNode`로 받아 "필드 없음"과 `null`을 구분해 기존 값에 합친 뒤 전체를 다시 검증한다. 스키마와 기본 캘린더는 Flyway.
 
@@ -371,9 +371,9 @@ today가_없으면_400                       GET /api/items/overdue → assertPr
 '기간 조회에 to가 없으면 400'          GET /api/items?from=2026-11-23 → 400, type '/problems/missing-parameter', detail 'from, to가 필요합니다'
 ```
 
-- [ ] **Step 2: 실패 확인** — Run: `cd frontend && npx vitest run src/api/client.test.ts src/mocks/handlers.test.ts` / Expected: 바뀐 테스트들 FAIL(아직 `message`/400)
+- [ ] **Step 2: 실패 확인** — Run: `cd frontend && pnpm exec vitest run src/api/client.test.ts src/mocks/handlers.test.ts` / Expected: 바뀐 테스트들 FAIL(아직 `message`/400)
 - [ ] **Step 3: 구현** — 위 Interfaces대로 `client.ts`, `problems.ts`, `handlers.ts`.
-- [ ] **Step 4: 통과 확인** — `cd frontend && npm test && npm run build && npm run test:e2e` → 단위 전체 PASS, 빌드 성공, e2e 8 PASS
+- [ ] **Step 4: 통과 확인** — `cd frontend && pnpm test && pnpm build && pnpm test:e2e` → 단위 전체 PASS, 빌드 성공, e2e 8 PASS
 - [ ] **Step 5: 커밋** — `git commit -m "feat(frontend): read RFC 9457 problem details and emit them from MSW"`
 
 ---
@@ -388,7 +388,7 @@ today가_없으면_400                       GET /api/items/overdue → assertPr
 - Consumes: 완성된 백엔드 전체, Task 6의 화면
 
 - [ ] **Step 1: 백엔드 실행** — `cd backend && ./gradlew bootRun` (Docker Compose 지원이 `compose.yaml`의 PostgreSQL을 자동 기동). 확인: `curl -s localhost:8080/api/calendars` → `[{"id":"…","name":"내 캘린더","color":"#4a7bd8","visible":true}]`, `curl -si localhost:8080/api/items/nope -X DELETE` → `404`, `Content-Type: application/problem+json`, `"type":"/problems/not-found"`
-- [ ] **Step 2: 화면 실행** — `cd frontend && VITE_MOCK=off npm run dev`
+- [ ] **Step 2: 화면 실행** — `cd frontend && VITE_MOCK=off pnpm dev`
 - [ ] **Step 3: 브라우저 확인 (Playwright MCP)** — 설계서 3.6 목록: 캘린더 만들기·숨기기·삭제, 빠른 생성(시간 칸·하루 종일 줄), 편집 창(일정↔할 일 전환, 삭제), 드래그 이동·길이 조절·시간 칸↔하루 종일 줄, 할 일 체크, 새로고침 후 유지, 밀린 할 일 오늘 표시. 각 동작 후 `curl`로 저장값 확인, 브라우저 콘솔·백엔드 로그에 오류 없음. 오류 알림 확인(Review Focus 5): Playwright `page.route('**/api/items/*', …)`로 PATCH 응답만 `422` `application/problem+json` `{type:'/problems/end-before-start', …, detail:'종료가 시작보다 빠를 수 없습니다'}`로 바꾼 뒤 할 일을 체크 → 알림에 그 `detail` 문구가 뜨고 체크가 되돌아가는지 본다. 끝나면 route 해제.
-- [ ] **Step 4: README** — `backend/README.md`: 요구사항(JDK 25, Docker), `./gradlew bootRun`, `./gradlew test`(Testcontainers가 Docker 필요, 필요 시 `DOCKER_HOST`), DB 접속 정보(로컬 전용), 오류 응답 형식은 설계서 3.4 참조, 화면 연결 방법. `frontend/README.md`에 "실제 백엔드로: 백엔드 실행 후 `VITE_MOCK=off npm run dev`" 추가.
+- [ ] **Step 4: README** — `backend/README.md`: 요구사항(JDK 25, Docker), `./gradlew bootRun`, `./gradlew test`(Testcontainers가 Docker 필요, 필요 시 `DOCKER_HOST`), DB 접속 정보(로컬 전용), 오류 응답 형식은 설계서 3.4 참조, 화면 연결 방법. `frontend/README.md`에 "실제 백엔드로: 백엔드 실행 후 `VITE_MOCK=off pnpm dev`" 추가.
 - [ ] **Step 5: 커밋** — `git commit -m "docs: how to run the backend and connect the frontend"`
