@@ -1,4 +1,4 @@
-.sidebar { padding: 16px 12px; border-right: 1px solid var(--line); background: var(--panel); overflow-y: auto; }
+.sidebar { display: flex; flex-direction: column; padding: 16px 12px; border-right: 1px solid var(--line); background: var(--panel); overflow-y: auto; }
 .sidebar-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
 .sidebar-header h2 { font-size: 14px; margin: 0; }
 .calendar-list { list-style: none; margin: 0; padding: 0; }
@@ -7,3 +7,19 @@
 .calendar-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .calendar-row .icon-button { visibility: hidden; }
 .calendar-row:hover .icon-button, .calendar-row .icon-button:focus { visibility: visible; }
+
+/* 라이트/다크 토글 — 사이드바 아래쪽에 붙는다. Forma 톤: 얇은 테두리 트랙, 켜지면 강조색 */
+.theme-toggle { margin-top: auto; padding-top: 12px; display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
+.theme-switch {
+  position: relative; width: 34px; height: 18px; padding: 0; flex: none;
+  border: 1px solid var(--line); border-radius: 9px; background: var(--bg);
+}
+.theme-switch:hover:not(:disabled) { background: var(--hover); }
+.theme-switch[aria-checked='true'] { background: var(--primary); border-color: var(--primary); }
+.theme-switch[aria-checked='true']:hover:not(:disabled) { background: var(--primary-hover); border-color: var(--primary-hover); }
+.theme-switch-thumb {
+  position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%;
+  background: var(--muted); transition: transform 0.15s;
+}
+.theme-switch[aria-checked='true'] .theme-switch-thumb { transform: translateX(16px); background: var(--on-primary); }
+.theme-switch:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }

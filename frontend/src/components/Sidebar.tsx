@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react'
 import type { Calendar } from '../types'
+import type { Theme } from '../lib/theme'
 import './Sidebar.css'
 
 interface Props {
@@ -7,9 +8,12 @@ interface Props {
   onToggle(id: string, visible: boolean): void
   onCreate(): void
   onEdit(calendar: Calendar): void
+  theme: Theme
+  onThemeChange(theme: Theme): void
 }
 
-export function Sidebar({ calendars, onToggle, onCreate, onEdit }: Props) {
+export function Sidebar({ calendars, onToggle, onCreate, onEdit, theme, onThemeChange }: Props) {
+  const dark = theme === 'dark'
   return (
     <aside className="sidebar">
       <div className="sidebar-header">
@@ -43,6 +47,20 @@ export function Sidebar({ calendars, onToggle, onCreate, onEdit }: Props) {
           </li>
         ))}
       </ul>
+      <div className="theme-toggle">
+        <span aria-hidden="true">☀</span>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={dark}
+          aria-label="다크 테마"
+          className="theme-switch"
+          onClick={() => onThemeChange(dark ? 'light' : 'dark')}
+        >
+          <span className="theme-switch-thumb" />
+        </button>
+        <span aria-hidden="true">☾</span>
+      </div>
     </aside>
   )
 }

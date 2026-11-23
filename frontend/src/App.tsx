@@ -10,6 +10,7 @@ import { addDays, todayLocal } from './lib/dates'
 import { Sidebar } from './components/Sidebar'
 import { CalendarFormDialog } from './components/CalendarFormDialog'
 import { Toast } from './components/Toast'
+import { applyTheme, initialTheme, saveTheme, type Theme } from './lib/theme'
 import './App.css'
 
 function thisWeek(today: string): { from: string; to: string } {
@@ -25,6 +26,12 @@ type EditState = { item: Item | null; draft: ItemInput } | null
 type CalendarDialog = { mode: 'create' } | { mode: 'edit'; calendar: Calendar } | null
 
 export default function App() {
+  const [theme, setTheme] = useState<Theme>(initialTheme)
+  const changeTheme = (next: Theme) => {
+    setTheme(next)
+    applyTheme(next)
+    saveTheme(next)
+  }
   const calendars = useCalendars().data ?? []
   const calendarMut = useCalendarMutations()
   const [calendarDialog, setCalendarDialog] = useState<CalendarDialog>(null)
@@ -48,10 +55,13 @@ export default function App() {
         onToggle={(id, visible) => void calendarMut.update(id, { visible }).catch(() => {})}
         onCreate={() => setCalendarDialog({ mode: 'create' })}
         onEdit={(calendar) => setCalendarDialog({ mode: 'edit', calendar })}
+        theme={theme}
+        onThemeChange={changeTheme}
       />
       <main className="main">
         <CalendarView
           events={events}
+          colorScheme={theme}
           onRangeChange={(from, to) => setRange((r) => (r.from === from && r.to === to ? r : { from, to }))}
           onSelectSlot={(slot, anchor) => setQuick({ slot, anchor })}
           onItemClick={(item) => {
