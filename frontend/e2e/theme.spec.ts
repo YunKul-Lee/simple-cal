@@ -240,7 +240,17 @@ test.describe('다크 저장 상태', () => {
     expect(toastBg).not.toBe(bodyBg)
     expect(await css(toast, 'color')).not.toBe(toastBg)
   })
+
+  test('다크에서 흐린 글자도 읽힌다', async ({ page }) => {
+    await seedItem(page, { type: 'task', title: '전화', date: '2026-11-26', startTime: '09:00' })
+
+    const time = page.locator('.sc-view-timeGridWeek .item-task', { hasText: '전화' }).locator('.task-time')
+    await expect(time).toBeVisible()
+    // Forma 다크 muted #6b7280은 바탕 #030712 위에서 너무 흐리다 — #9ca3af
+    expect(await css(time, 'color')).toBe('rgb(156, 163, 175)')
+  })
 })
+
 
 test.describe('테마 토글', () => {
   /** .sc-view를 감싼 달력 루트 — html이 아닌 첫 [data-color-scheme] 요소 */
@@ -275,7 +285,22 @@ test.describe('테마 토글', () => {
     await page.keyboard.press('Space')
     await expect(toggle).toHaveAttribute('aria-checked', 'true')
   })
+
+  test('켜진 토글은 마우스를 올려도 켜진 색', async ({ page }) => {
+    await openApp(page)
+    const toggle = page.getByRole('switch', { name: '다크 테마' })
+    await toggle.click()
+    await expect(toggle).toHaveAttribute('aria-checked', 'true')
+
+    await toggle.hover()
+    // 다크 --fc-forma-primary-over #4A9BE8
+    await expect.poll(() => css(toggle, 'background-color')).toBe('rgb(74, 155, 232)')
+    const bg = await css(toggle, 'background-color')
+    expect(bg).not.toBe('rgba(0, 0, 0, 0)')
+    expect(bg).not.toMatch(/^rgba\(/)
+  })
 })
+
 
 test.describe('localStorage 막힘', () => {
   test('localStorage가 막혀도 열리고 토글은 동작한다', async ({ page }) => {
