@@ -12,6 +12,9 @@ services:
       POSTGRES_DB: simplecal
       POSTGRES_USER: simplecal
       POSTGRES_PASSWORD: simplecal
+    # 외부 DB 툴 접속용 (localhost만). backend/compose.yaml DB와 겹치면 DB_PORT로 바꾼다
+    ports:
+      - '127.0.0.1:${DB_PORT:-5432}:5432'
     volumes:
       - db:/var/lib/postgresql
     healthcheck:
