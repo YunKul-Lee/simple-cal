@@ -1,0 +1,42 @@
+# simple-cal 전체(PostgreSQL · 백엔드 · nginx 프론트엔드)를 k8s 없이 띄운다.
+# 백엔드·프론트엔드 이미지는 각 디렉터리의 Dockerfile로 compose가 빌드한다.
+#   docker compose up -d --build   → http://localhost:8081 (포트는 PORT로 바꿈)
+# 서비스 이름이 k8s 서비스 이름과 같아서 프론트엔드의 기본 BACKEND_URL이 그대로 맞는다.
+# DB 비밀번호는 로컬 전용 기본값
+name: simple-cal
+
+services:
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: simplecal
+      POSTGRES_USER: simplecal
+      POSTGRES_PASSWORD: simplecal
+    volumes:
+      - db:/var/lib/postgresql
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 2s
+      retries: 30
+
+  simple-cal-backend:
+    image: simple-cal-backend:latest
+    build: ./backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/simplecal
+      SPRING_DATASOURCE_USERNAME: simplecal
+      SPRING_DATASOURCE_PASSWORD: simplecal
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  simple-cal-frontend:
+    image: simple-cal-frontend:latest
+    build: ./frontend
+    ports:
+      - '${PORT:-8081}:8080'
+    depends_on:
+      - simple-cal-backend
+
+volumes:
+  db:
