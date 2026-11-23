@@ -39,7 +39,7 @@ const ALL_DAY_TEXT = '하루 종일'
 function TaskContent({ item, overdueFrom, timeText }: ItemEventProps & { timeText: string }) {
   return (
     <div className="task-content">
-      <input type="checkbox" className="task-check" aria-label={`${item.title} 완료`} checked={item.done} readOnly />
+      <input type="checkbox" className="task-check color-check" aria-label={`${item.title} 완료`} checked={item.done} readOnly />
       {timeText && <span className="task-time">{timeText}</span>}
       <span className="task-title">{item.title}</span>
       {overdueFrom && <span className="overdue-badge">{badgeText(overdueFrom)}</span>}

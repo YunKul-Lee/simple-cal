@@ -27,3 +27,31 @@ button.danger { color: var(--danger); border-color: var(--danger); }
 .icon-button { border: none; background: none; padding: 2px 6px; font-size: 16px; color: var(--muted); }
 input, select, textarea { font: inherit; color: inherit; background: var(--bg); padding: 6px 8px; border: 1px solid var(--line); border-radius: var(--radius); }
 input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--primary); outline-offset: -1px; }
+
+/* 캘린더 색 체크박스(할 일·사이드바 공용): 네이티브 checkbox(키보드·스크린리더 그대로)에 모양만 입힌다.
+   테두리와 체크 채움은 --check-color. 전역 input 여백이 들어오지 않게 padding 0 */
+.color-check {
+  appearance: none;
+  flex: none;
+  box-sizing: border-box;
+  width: 13px;
+  height: 13px;
+  margin: 0;
+  padding: 0;
+  border: 1.5px solid var(--check-color, var(--primary));
+  border-radius: 3px;
+  background: var(--bg);
+  display: inline-grid;
+  place-content: center;
+  cursor: pointer;
+}
+.color-check:checked { background: var(--check-color, var(--primary)); }
+.color-check:checked::after {
+  content: '';
+  width: 7px;
+  height: 4px;
+  border: solid #fff;
+  border-width: 0 0 2px 2px;
+  transform: translate(0, -1px) rotate(-45deg);
+}
+.color-check:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }

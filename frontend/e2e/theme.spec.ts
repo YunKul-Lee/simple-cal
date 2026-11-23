@@ -122,3 +122,55 @@ test('오류 토스트는 바탕과 구분된다', async ({ page }) => {
   expect(await css(toast, 'background-color')).not.toBe(bodyBg)
   expect(await css(toast, 'border-radius')).toBe('4px')
 })
+
+test('사이드바 체크박스는 캘린더 색', async ({ page }) => {
+  const check = page.getByRole('checkbox', { name: '내 캘린더' })
+  await expect(check).toBeChecked()
+  expect(await css(check, 'border-top-color')).toBe(CALENDAR_COLOR)
+  expect(await css(check, 'background-color')).toBe(CALENDAR_COLOR)
+
+  await check.click()
+  await expect(check).not.toBeChecked()
+  await expect.poll(() => css(check, 'background-color')).not.toBe(CALENDAR_COLOR)
+
+  await expect(page.locator('.sidebar .swatch')).toHaveCount(0)
+
+  // 두 번째 캘린더도 자기 색을 테두리로 쓴다
+  await page.evaluate(async () => {
+    const r = await fetch('/api/calendars', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: '회사', color: '#d9822b' }),
+    })
+    if (!r.ok) throw new Error(`POST /api/calendars ${r.status}`)
+  })
+  await page.reload()
+  const work = page.getByRole('checkbox', { name: '회사' })
+  await expect(work).toBeVisible()
+  expect(await css(work, 'border-top-color')).toBe('rgb(217, 130, 43)')
+})
+
+test('사이드바 체크박스도 키보드로 켜고 끈다', async ({ page }) => {
+  const check = page.getByRole('checkbox', { name: '내 캘린더' })
+  await check.focus()
+
+  await page.keyboard.press('Space')
+  await expect(check).not.toBeChecked()
+
+  await page.keyboard.press('Space')
+  await expect(check).toBeChecked()
+
+  await expect(check).toBeFocused()
+  expect(await css(check, 'outline-style')).not.toBe('none')
+})
+
+test('체크박스는 13px 정사각형', async ({ page }) => {
+  await seedItem(page, { type: 'task', title: '보고서', date: '2026-11-25' })
+
+  for (const name of ['보고서 완료', '내 캘린더']) {
+    const box = await page.getByRole('checkbox', { name }).boundingBox()
+    expect(box, name).not.toBeNull()
+    expect(box!.width, `${name} width`).toBeCloseTo(13, 0)
+    expect(box!.height, `${name} height`).toBeCloseTo(13, 0)
+  }
+})

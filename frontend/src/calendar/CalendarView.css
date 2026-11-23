@@ -11,31 +11,8 @@
 .sc-view-timeGridWeek .task-content { font-size: 12px; }
 .task-content { display: flex; align-items: center; gap: 4px; padding: 1px 2px; overflow: hidden; white-space: nowrap; color: var(--text); }
 
-/* 할 일 체크박스: 네이티브 checkbox(키보드·스크린리더 그대로)에 모양만 입힌다.
-   테두리와 체크 채움은 캘린더 색(이벤트마다 v7이 넣는 --fc-event-color) */
-.task-check {
-  appearance: none;
-  flex: none;
-  width: 13px;
-  height: 13px;
-  margin: 0;
-  border: 1.5px solid var(--fc-event-color);
-  border-radius: 3px;
-  background: var(--bg, #fff);
-  display: inline-grid;
-  place-content: center;
-  cursor: pointer;
-}
-.task-check:checked { background: var(--fc-event-color); }
-.task-check:checked::after {
-  content: '';
-  width: 7px;
-  height: 4px;
-  border: solid #fff;
-  border-width: 0 0 2px 2px;
-  transform: translate(0, -1px) rotate(-45deg);
-}
-.task-check:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+/* 할 일 체크박스는 공통 .color-check(index.css)에 캘린더 색(v7이 이벤트마다 넣는 --fc-event-color)을 준다 */
+.task-check { --check-color: var(--fc-event-color); }
 
 .task-time { color: var(--muted); font-size: 11px; }
 .task-title { overflow: hidden; text-overflow: ellipsis; }

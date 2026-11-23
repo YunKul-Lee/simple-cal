@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import type { Calendar } from '../types'
 import './Sidebar.css'
 
@@ -23,11 +24,12 @@ export function Sidebar({ calendars, onToggle, onCreate, onEdit }: Props) {
             <label>
               <input
                 type="checkbox"
+                className="color-check"
+                style={{ '--check-color': cal.color } as CSSProperties}
                 aria-label={cal.name}
                 checked={cal.visible}
                 onChange={(e) => onToggle(cal.id, e.target.checked)}
               />
-              <span className="swatch" style={{ background: cal.color }} />
               <span className="calendar-name">{cal.name}</span>
             </label>
             <button
