@@ -24,7 +24,7 @@
 
 ## Review Focus
 
-1. **OS가 다크 모드일 때** — v7 테마는 다크 모드를 지원하지만 앱의 나머지는 밝은 색뿐이다. 달력도 밝게 남아야 한다 → `colorScheme="light"` 명시, Task 1 단위 테스트로 고정
+1. **OS가 다크 모드일 때** — v7 테마는 다크 모드를 지원하지만 앱의 나머지는 밝은 색뿐이다. 달력도 밝게 남아야 한다 → `CalendarView`의 `colorScheme` prop 기본값 `'light'`, Task 1 단위 테스트로 고정. e2e도 Playwright `colorScheme: 'light'`로 실행. (라이트/다크를 고르는 테마 기능은 이후 단계에서 이 prop을 바꿔 쓴다)
 2. **한국어 라벨이 v7 옵션 변경으로 영어/대문자로 바뀌는 경우** (`buttonText` 제거, `allDayText` 대문자화) → Task 1 단위 테스트로 버튼 4개와 `하루 종일` 확인
 3. **목록 보기의 할 일** — v7에서 목록 보기 `eventContent`가 그려지는 위치가 바뀌었다. 목록 보기에서도 할 일 체크박스가 보이고 눌러야 한다 → Task 2 e2e에 추가
 4. **시간 있는 할 일 크기 조절** — `durationEditable: false`가 v7에서도 지켜져 할 일은 30분 블록 그대로여야 한다 → Task 1 adapter 테스트에서 값 확인(기존), Task 2 e2e는 기존 범위 유지
@@ -43,7 +43,7 @@
 
 **Interfaces:**
 - Consumes: 없음
-- Produces: `itemsToEvents()`가 내는 `EventInput`의 모양이 바뀐다 — 색은 `color: string`(일정·할 일 모두 캘린더 색), 클래스는 `className: string`(공백 구분, 예: `'item-task is-done'`). `backgroundColor`·`borderColor`·`classNames`는 더 이상 없다. `CalendarView`의 Props는 그대로.
+- Produces: `itemsToEvents()`가 내는 `EventInput`의 모양이 바뀐다 — 색은 `color: string`(일정·할 일 모두 캘린더 색), 클래스는 `className: string`(공백 구분, 예: `'item-task is-done'`). `backgroundColor`·`borderColor`·`classNames`는 더 이상 없다. `CalendarView` Props에 `colorScheme?: 'light' | 'dark'`(기본 `'light'`)가 추가되고 나머지는 그대로. `App.tsx`는 넘기지 않는다(기본값 사용) — 이후 테마 기능이 이 prop을 채운다.
 
 - [ ] **Step 1: 실패하는 테스트로 바꾸기 (test-writer)**
 
@@ -55,7 +55,8 @@
 `CalendarView.test.tsx`: 타입 import를 `import type { EventInput } from '@fullcalendar/react'`로 바꾸고, 테스트 3개 추가.
 - `test('한국어 툴바 버튼')`: `getByRole('button', { name: '오늘' })`, `'주'`, `'월'`, `'목록'`이 각각 존재 (`exact: true`)
 - `test('종일 줄 라벨은 하루 종일')`: `await screen.findByText('하루 종일')` 존재
-- `test('OS 다크 모드여도 밝은 색 테마')`: 렌더한 컨테이너 안에 `[data-color-scheme="light"]` 요소가 있다
+- `test('기본은 밝은 색 테마')`: `colorScheme`을 넘기지 않고 렌더 → 컨테이너 안에 `[data-color-scheme="light"]` 요소가 있다
+- `test('colorScheme을 넘기면 그대로 적용')`: `colorScheme="dark"`로 렌더 → `[data-color-scheme="dark"]` 요소가 있다
 
 - [ ] **Step 2: 실패 확인**
 
@@ -79,7 +80,7 @@ Expected: `package.json`의 dependencies에 `@fullcalendar/react: "7.1.5"`, `tem
 - `headerToolbar={{ start: 'prev,next today', center: 'title', end: 'timeGridWeek,dayGridMonth,listWeek' }}`
 - `buttonText` 삭제 → `todayText="오늘"` + `buttons={{ timeGridWeek: { text: '주' }, dayGridMonth: { text: '월' }, listWeek: { text: '목록' } }}`
 - `allDayText="하루 종일"` 유지; 대문자화·줄바꿈 처리로 바뀌어 보이면 `allDayHeaderContent={() => '하루 종일'}`로 고정
-- `colorScheme="light"` 추가
+- Props에 `colorScheme?: 'light' | 'dark'` 추가, 기본값 `'light'`, FullCalendar `colorScheme`에 그대로 전달
 - `eventContent`의 `return true`(일정 기본 표시)가 v7에서 빈 칸이 되면 `undefined` 반환으로 바꾼다 — 일정 제목이 보이는지는 Step 7에서 확인
 - `nowIndicator`, `editable`, `selectable={false}`, `eventOrder`, `height="100%"`, `firstDay={1}`, 콜백 연결은 그대로
 
@@ -90,7 +91,7 @@ Expected: `package.json`의 dependencies에 `@fullcalendar/react: "7.1.5"`, `tem
 - [ ] **Step 7: 통과 확인 (test-writer)**
 
 Run: `cd frontend && pnpm test && pnpm build`
-Expected: 단위 테스트 전부 PASS(기존 78 + 신규 3), 타입 체크·빌드 성공. e2e는 Task 2 전이라 실패해도 된다.
+Expected: 단위 테스트 전부 PASS(기존 78 + 신규 4), 타입 체크·빌드 성공. e2e는 Task 2 전이라 실패해도 된다.
 
 - [ ] **Step 8: 커밋**
 
@@ -105,7 +106,7 @@ git commit -m "chore(frontend): upgrade FullCalendar to v7 with the classic them
 
 **Files:**
 - Modify: `frontend/src/calendar/CalendarView.tsx` (class 옵션 추가)
-- Modify: `frontend/e2e/helpers.ts`, `frontend/e2e/calendar.spec.ts`
+- Modify: `frontend/e2e/helpers.ts`, `frontend/e2e/calendar.spec.ts`, `frontend/playwright.config.ts` (`use.colorScheme: 'light'`)
 - Test: `frontend/src/calendar/CalendarView.test.tsx`
 
 **Interfaces:**
@@ -151,7 +152,7 @@ Expected: 단위 `보기 루트에 훅 클래스` FAIL, e2e는 훅 클래스가 
 - [ ] **Step 5: 통과 확인 (test-writer)**
 
 Run: `cd frontend && pnpm test && pnpm test:e2e && pnpm build`
-Expected: 단위 전부 PASS(82), e2e 전부 PASS(기존 8 + 신규 1), 빌드 성공
+Expected: 단위 전부 PASS(83), e2e 전부 PASS(기존 8 + 신규 1), 빌드 성공
 
 - [ ] **Step 6: 겉모습 비교**
 
@@ -160,6 +161,6 @@ v6(main)과 이 브랜치에서 주·월·목록 보기를 같은 데이터로 �
 - [ ] **Step 7: 커밋**
 
 ```bash
-git add frontend/src/calendar frontend/e2e
+git add frontend/src/calendar frontend/e2e frontend/playwright.config.ts
 git commit -m "test(frontend): select calendar elements by our own hook classes for v7"
 ```
