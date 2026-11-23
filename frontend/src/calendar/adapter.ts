@@ -1,4 +1,4 @@
-import type { EventInput } from '@fullcalendar/core'
+import type { EventInput } from '@fullcalendar/react'
 import type { Calendar, Item, ItemPatch, ItemType } from '../types'
 import { addDays, addMinutes, toLocalDate, toLocalTime } from '../lib/dates'
 
@@ -19,14 +19,13 @@ function toEvent(item: Item, color: string, overdueFrom: string | null, today: s
       ...base,
       start: today,
       allDay: true,
-      backgroundColor: 'transparent',
-      borderColor: color,
-      classNames: ['item-task', 'is-overdue'],
+      color,
+      className: 'item-task is-overdue',
     }
   }
 
   if (item.type === 'event') {
-    const colors = { backgroundColor: color, borderColor: color, classNames: ['item-event'] }
+    const colors = { color, className: 'item-event' }
     if (item.startTime !== null && item.endTime !== null) {
       return {
         ...base,
@@ -39,11 +38,8 @@ function toEvent(item: Item, color: string, overdueFrom: string | null, today: s
     return { ...base, ...colors, start: item.date, end: addDays(item.endDate ?? item.date, 1), allDay: true }
   }
 
-  const taskStyle = {
-    backgroundColor: 'transparent',
-    borderColor: color,
-    classNames: item.done ? ['item-task', 'is-done'] : ['item-task'],
-  }
+  // 투명 배경 + 왼쪽 색 테두리는 CSS가 --fc-event-color로 그린다
+  const taskStyle = { color, className: item.done ? 'item-task is-done' : 'item-task' }
   if (item.startTime !== null) {
     const end = addMinutes(item.date, item.startTime, TASK_BLOCK_MINUTES)
     return {

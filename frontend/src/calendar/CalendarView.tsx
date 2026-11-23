@@ -1,10 +1,14 @@
 import FullCalendar from '@fullcalendar/react'
-import dayGridPlugin from '@fullcalendar/daygrid'
-import timeGridPlugin from '@fullcalendar/timegrid'
-import listPlugin from '@fullcalendar/list'
-import interactionPlugin, { type DateClickArg } from '@fullcalendar/interaction'
-import koLocale from '@fullcalendar/core/locales/ko'
-import type { EventChangeArg, EventClickArg, EventContentArg, EventInput } from '@fullcalendar/core'
+import dayGridPlugin from '@fullcalendar/react/daygrid'
+import timeGridPlugin from '@fullcalendar/react/timegrid'
+import listPlugin from '@fullcalendar/react/list'
+import interactionPlugin from '@fullcalendar/react/interaction'
+import classicTheme from '@fullcalendar/react/themes/classic'
+import koLocale from '@fullcalendar/react/locales/ko'
+import type { DateClickInfo, EventChangeInfo, EventClickInfo, EventDisplayInfo, EventInput } from '@fullcalendar/react'
+import '@fullcalendar/react/skeleton.css'
+import '@fullcalendar/react/themes/classic/theme.css'
+import '@fullcalendar/react/themes/classic/palette.css'
 import type { Item } from '../types'
 import type { ItemEventProps } from './adapter'
 import { addDays, toLocalDate, toLocalTime } from '../lib/dates'
@@ -15,6 +19,8 @@ type Change = { start: Date; end: Date | null; allDay: boolean }
 
 interface Props {
   events: EventInput[]
+  /** 이후 테마 기능이 채운다. 지금은 앱 전체가 밝은 색뿐이라 기본 'light' */
+  colorScheme?: 'light' | 'dark'
   initialDate?: string
   onRangeChange(from: string, to: string): void
   onSelectSlot(slot: Slot, anchor: { x: number; y: number }): void
@@ -31,7 +37,7 @@ function badgeText(date: string): string {
   return `${m}/${d}부터`
 }
 
-function renderContent(arg: EventContentArg) {
+function renderContent(arg: EventDisplayInfo) {
   const { item, overdueFrom } = propsOf(arg)
   if (item.type === 'event') return true // v6: true여야 FullCalendar 기본 표시(시간 + 제목) — undefined는 빈 칸
   return (
@@ -46,6 +52,7 @@ function renderContent(arg: EventContentArg) {
 
 export function CalendarView({
   events,
+  colorScheme = 'light',
   initialDate,
   onRangeChange,
   onSelectSlot,
@@ -53,7 +60,7 @@ export function CalendarView({
   onToggleDone,
   onItemChange,
 }: Props) {
-  const handleClick = (info: EventClickArg) => {
+  const handleClick = (info: EventClickInfo) => {
     const { item } = propsOf(info)
     const target = info.jsEvent.target as HTMLElement | null
     if (target?.closest('.task-check')) {
@@ -65,14 +72,14 @@ export function CalendarView({
     onItemClick(item)
   }
 
-  const handleChange = (info: EventChangeArg) => {
+  const handleChange = (info: EventChangeInfo) => {
     const { item } = propsOf(info)
     const { start, end, allDay } = info.event
     if (!start) return
     onItemChange(item, { start, end, allDay }).catch(() => info.revert())
   }
 
-  const handleDateClick = (info: DateClickArg) => {
+  const handleDateClick = (info: DateClickInfo) => {
     onSelectSlot(
       { date: toLocalDate(info.date), startTime: info.allDay ? null : toLocalTime(info.date) },
       { x: info.jsEvent.clientX, y: info.jsEvent.clientY },
@@ -82,13 +89,15 @@ export function CalendarView({
   return (
     <div className="calendar-view">
       <FullCalendar
-        plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
+        plugins={[classicTheme, dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
+        colorScheme={colorScheme}
         locale={koLocale}
         initialView="timeGridWeek"
         initialDate={initialDate}
         firstDay={1}
-        headerToolbar={{ left: 'prev,next today', center: 'title', right: 'timeGridWeek,dayGridMonth,listWeek' }}
-        buttonText={{ today: '오늘', week: '주', month: '월', list: '목록' }}
+        headerToolbar={{ start: 'prev,next today', center: 'title', end: 'timeGridWeek,dayGridMonth,listWeek' }}
+        todayText="오늘"
+        buttons={{ timeGridWeek: { text: '주' }, dayGridMonth: { text: '월' }, listWeek: { text: '목록' } }}
         allDayText="하루 종일"
         height="100%"
         nowIndicator

@@ -50,7 +50,7 @@ describe('itemsToEvents', () => {
     expect(e.start).toBe('2026-11-23T10:00')
     expect(e.end).toBe('2026-11-23T11:00')
     expect(e.allDay).toBe(false)
-    expect(e.backgroundColor).toBe('#4a7bd8')
+    expect(e.color).toBe('#4a7bd8')
     expect(props(e).item).toEqual(item)
     expect(props(e).overdueFrom).toBeNull()
   })
@@ -77,14 +77,15 @@ describe('itemsToEvents', () => {
     expect(e.start).toBe('2026-11-26T15:00')
     expect(e.end).toBe('2026-11-26T15:30')
     expect(e.durationEditable).toBe(false)
-    expect(e.classNames).toContain('item-task')
+    expect(String(e.className).split(' ')).toContain('item-task')
+    expect(e).not.toHaveProperty('backgroundColor')
   })
 
   test('완료한 할 일은 is-done 클래스', () => {
     const item = task({ done: true })
     const [e] = itemsToEvents([item], [], calendars, today)
-    expect(e.classNames).toContain('item-task')
-    expect(e.classNames).toContain('is-done')
+    expect(String(e.className).split(' ')).toContain('item-task')
+    expect(String(e.className).split(' ')).toContain('is-done')
   })
 
   test('숨긴 캘린더 항목은 제외', () => {
@@ -100,7 +101,7 @@ describe('itemsToEvents', () => {
     expect(e.start).toBe('2026-11-25')
     expect(e.allDay).toBe(true)
     expect(props(e).overdueFrom).toBe('2026-11-20')
-    expect(e.classNames).toContain('is-overdue')
+    expect(String(e.className).split(' ')).toContain('is-overdue')
   })
 
   test('완료한 지난 할 일은 원래 날짜에 그대로', () => {

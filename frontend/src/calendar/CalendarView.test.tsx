@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import type { EventInput } from '@fullcalendar/core'
+import type { EventInput } from '@fullcalendar/react'
 import type { Calendar, Item } from '../types'
 import { itemsToEvents } from './adapter'
 import { CalendarView } from './CalendarView'
@@ -24,7 +24,7 @@ function task(overrides: Partial<Item> = {}): Item {
   }
 }
 
-function setup(events: EventInput[]) {
+function setup(events: EventInput[], colorScheme?: 'light' | 'dark') {
   const props = {
     onRangeChange: vi.fn(),
     onSelectSlot: vi.fn(),
@@ -32,7 +32,14 @@ function setup(events: EventInput[]) {
     onToggleDone: vi.fn(),
     onItemChange: vi.fn().mockResolvedValue(undefined),
   }
-  const { container } = render(<CalendarView events={events} initialDate="2026-11-25" {...props} />)
+  const { container } = render(
+    <CalendarView
+      events={events}
+      initialDate="2026-11-25"
+      colorScheme={colorScheme}
+      {...props}
+    />,
+  )
   return { user: userEvent.setup(), container, ...props }
 }
 
@@ -80,5 +87,39 @@ describe('CalendarView', () => {
     const titles = Array.from(container.querySelectorAll('.task-title')).map((el) => el.textContent)
     expect(titles.indexOf('하하하')).toBeGreaterThanOrEqual(0)
     expect(titles.indexOf('하하하')).toBeLessThan(titles.indexOf('가나다'))
+  })
+
+  test('한국어 툴바 버튼', async () => {
+    setup(events)
+    expect(await screen.findByRole('button', { name: '오늘' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: '주' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: '월' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: '목록' })).toBeInTheDocument()
+  })
+
+  test('일정은 제목이 보인다', async () => {
+    const meeting: Item = {
+      ...task({ id: 'e1', title: '주간회의', startTime: '10:00', endTime: '11:00' }),
+      type: 'event',
+    }
+    setup(itemsToEvents([meeting], [], [c1], today))
+    expect(await screen.findByText('주간회의')).toBeVisible()
+  })
+
+  test('종일 줄 라벨은 하루 종일', async () => {
+    setup(events)
+    expect(await screen.findByText('하루 종일')).toBeInTheDocument()
+  })
+
+  test('기본은 밝은 색 테마', async () => {
+    const { container } = setup(events)
+    await screen.findByText('보고서')
+    expect(container.querySelector('[data-color-scheme="light"]')).not.toBeNull()
+  })
+
+  test('colorScheme을 넘기면 그대로 적용', async () => {
+    const { container } = setup(events, 'dark')
+    await screen.findByText('보고서')
+    expect(container.querySelector('[data-color-scheme="dark"]')).not.toBeNull()
   })
 })
