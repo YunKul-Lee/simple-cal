@@ -47,9 +47,10 @@ docker build -t simple-cal-frontend:$TAG -t simple-cal-frontend:latest .
 docker run --rm -p 8081:8080 -e BACKEND_URL=http://host.docker.internal:8080 simple-cal-frontend:latest
 ```
 
-k8s 배포(`../backend/k8s.yaml`을 먼저 적용):
+k8s 배포(`../backend/k8s.yaml`을 먼저 적용). Docker Desktop 클러스터는 로컬 Docker 이미지를 보지 못하므로 노드의 containerd에 먼저 넣는다:
 
 ```bash
+docker save simple-cal-frontend:$TAG | docker exec -i desktop-control-plane ctr -n k8s.io images import -
 sed "s/TAG_PLACEHOLDER/$TAG/" k8s.yaml | kubectl -n jake-ns apply -f -
 kubectl -n jake-ns port-forward svc/simple-cal-frontend 8081:80   # http://localhost:8081
 ```
