@@ -1,0 +1,113 @@
+# simple-cal 백엔드 + PostgreSQL을 jake-ns에 배포
+# TAG_PLACEHOLDER는 bootBuildImage가 만든 빌드 시각 태그로 바꿔서 적용한다:
+#   sed "s/TAG_PLACEHOLDER/$TAG/" backend/k8s.yaml | kubectl -n jake-ns apply -f -
+# DB 비밀번호는 로컬 전용 기본값
+apiVersion: v1
+kind: Secret
+metadata:
+  name: simple-cal-db
+stringData:
+  POSTGRES_DB: simplecal
+  POSTGRES_USER: simplecal
+  POSTGRES_PASSWORD: simplecal
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-data
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels: { app: postgres }
+  template:
+    metadata:
+      labels: { app: postgres }
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:18
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - secretRef: { name: simple-cal-db }
+          readinessProbe:
+            exec:
+              command: [sh, -c, 'pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"']
+            periodSeconds: 5
+          resources:
+            requests: { cpu: 250m, memory: 256Mi }
+            limits: { cpu: 500m, memory: 512Mi }
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: postgres-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+spec:
+  selector: { app: postgres }
+  ports:
+    - port: 5432
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: simple-cal-backend
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels: { app: simple-cal-backend }
+  template:
+    metadata:
+      labels: { app: simple-cal-backend }
+    spec:
+      containers:
+        - name: backend
+          image: docker.io/library/simple-cal-backend:TAG_PLACEHOLDER
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:postgresql://postgres:5432/simplecal
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef: { name: simple-cal-db, key: POSTGRES_USER }
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: simple-cal-db, key: POSTGRES_PASSWORD }
+          readinessProbe:
+            httpGet: { path: /api/calendars, port: 8080 }
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests: { cpu: 500m, memory: 512Mi }
+            limits: { cpu: "1", memory: 1Gi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: simple-cal-backend
+spec:
+  selector: { app: simple-cal-backend }
+  ports:
+    - port: 8080
