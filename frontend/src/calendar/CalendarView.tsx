@@ -115,6 +115,8 @@ export function CalendarView({
         slotLaneClass="sc-slot"
         locale={koLocale}
         initialView="timeGridWeek"
+        // v7은 주 보기 제목에서 날짜를 빼고 '2026년 11월'만 보인다 — v6처럼 날짜 범위로
+        views={{ timeGridWeek: { titleFormat: { year: 'numeric', month: 'long', day: 'numeric' } } }}
         initialDate={initialDate}
         firstDay={1}
         headerToolbar={{ start: 'prev,next today', center: 'title', end: 'timeGridWeek,dayGridMonth,listWeek' }}

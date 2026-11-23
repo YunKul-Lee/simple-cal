@@ -122,6 +122,35 @@ test('목록 보기에서도 할 일 체크박스로 완료한다', async ({ pag
   await expect(page.getByRole('checkbox', { name: '장보기 완료' })).toBeChecked()
 })
 
+test('목록 보기에서 할 일 행도 일정 행과 같은 구분선·글자 크기', async ({ page }) => {
+  await seedItem(page, { type: 'event', title: '회의', date: '2026-11-25', startTime: '10:00', endTime: '11:00' })
+  await seedItem(page, { type: 'task', title: '운동', date: '2026-11-25' })
+
+  await page.getByRole('tab', { name: '목록', exact: true }).click()
+  const eventRow = page.locator('.sc-view-listWeek .item-event', { hasText: '회의' })
+  const taskRow = page.locator('.sc-view-listWeek .item-task', { hasText: '운동' })
+  await expect(eventRow).toBeVisible()
+  await expect(taskRow).toBeVisible()
+
+  const style = (loc: typeof eventRow, prop: string) =>
+    loc.evaluate((el, p) => getComputedStyle(el).getPropertyValue(p), prop)
+
+  const eventBorder = await style(eventRow, 'border-top-width')
+  expect(eventBorder).not.toBe('0px')
+  expect(await style(taskRow, 'border-top-width')).toBe(eventBorder)
+
+  const eventTitle = eventRow.getByText('회의', { exact: true })
+  const taskTitle = taskRow.locator('.task-title')
+  expect(await style(taskTitle, 'font-size')).toBe(await style(eventTitle, 'font-size'))
+
+  await eventRow.hover()
+  const eventHoverBg = await style(eventRow, 'background-color')
+  await taskRow.hover()
+  const taskHoverBg = await style(taskRow, 'background-color')
+  expect(taskHoverBg).not.toBe('rgba(0, 0, 0, 0)')
+  expect(taskHoverBg).toBe(eventHoverBg)
+})
+
 test('캘린더를 숨기면 그 캘린더의 항목이 사라진다', async ({ page }) => {
   await seedItem(page, { type: 'event', title: '숨김테스트', date: '2026-11-24', startTime: '10:00', endTime: '11:00' })
   const item = page.locator('.sc-view').getByText('숨김테스트')

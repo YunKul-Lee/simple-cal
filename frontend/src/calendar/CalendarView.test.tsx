@@ -136,6 +136,11 @@ describe('CalendarView', () => {
     expect(row!.textContent).toContain('하루 종일')
   })
 
+  test('주 보기 제목은 날짜 범위를 보인다', async () => {
+    setup(events)
+    expect(await screen.findByRole('heading', { name: /11월 23일.*29일/ })).toBeInTheDocument()
+  })
+
   test('보기 루트에 훅 클래스', async () => {
     const { container } = setup(events)
     await screen.findByText('보고서')
