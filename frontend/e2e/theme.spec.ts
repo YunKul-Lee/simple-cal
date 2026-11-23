@@ -1,4 +1,4 @@
-import { expect, test, type Locator } from '@playwright/test'
+import { expect, test, type Locator, type Page } from '@playwright/test'
 import { allDayCell, openApp, seedItem } from './helpers'
 
 /** 첫 캘린더의 기본 색 #4a7bd8 */
@@ -239,5 +239,68 @@ test.describe('다크 저장 상태', () => {
     const toastBg = await css(toast, 'background-color')
     expect(toastBg).not.toBe(bodyBg)
     expect(await css(toast, 'color')).not.toBe(toastBg)
+  })
+})
+
+test.describe('테마 토글', () => {
+  /** .sc-view를 감싼 달력 루트 — html이 아닌 첫 [data-color-scheme] 요소 */
+  const calendarRoot = (page: Page) => page.locator('.calendar-view [data-color-scheme]').first()
+
+  test('토글로 다크로 바꾸면 화면과 달력이 함께 바뀌고 새로고침 후에도 유지', async ({ page }) => {
+    await openApp(page)
+    const html = page.locator('html')
+    const toggle = page.getByRole('switch', { name: '다크 테마' })
+
+    await toggle.click()
+    await expect(html).toHaveAttribute('data-color-scheme', 'dark')
+    await expect(calendarRoot(page)).toHaveAttribute('data-color-scheme', 'dark')
+    await expect.poll(() => css(page.locator('body'), 'background-color')).toBe('rgb(3, 7, 18)')
+
+    await page.reload()
+    await expect(toggle).toHaveAttribute('aria-checked', 'true')
+    await expect(html).toHaveAttribute('data-color-scheme', 'dark')
+
+    await toggle.click()
+    await expect(html).toHaveAttribute('data-color-scheme', 'light')
+    await page.reload()
+    await expect(toggle).toBeVisible()
+    await expect(html).toHaveAttribute('data-color-scheme', 'light')
+    expect(await page.evaluate(() => localStorage.getItem('simple-cal:theme'))).toBe('light')
+  })
+
+  test('키보드로 토글', async ({ page }) => {
+    await openApp(page)
+    const toggle = page.getByRole('switch', { name: '다크 테마' })
+    await toggle.focus()
+    await page.keyboard.press('Space')
+    await expect(toggle).toHaveAttribute('aria-checked', 'true')
+  })
+})
+
+test.describe('localStorage 막힘', () => {
+  test('localStorage가 막혀도 열리고 토글은 동작한다', async ({ page }) => {
+    const errors: Error[] = []
+    page.on('pageerror', (e) => errors.push(e))
+    // 모든 키를 막으면 e2e의 가짜 API(MSW)가 쿠키 저장소를 localStorage로 읽다가 먼저 죽는다.
+    // 그래서 앱이 쓰는 테마 키만 막는다 — 앱 입장에서는 localStorage가 막힌 것과 같다.
+    await page.addInitScript(() => {
+      const { getItem, setItem } = Storage.prototype
+      Storage.prototype.getItem = function (this: Storage, key: string) {
+        if (key === 'simple-cal:theme') throw new Error('storage blocked')
+        return getItem.call(this, key)
+      }
+      Storage.prototype.setItem = function (this: Storage, key: string, value: string) {
+        if (key === 'simple-cal:theme') throw new Error('storage blocked')
+        return setItem.call(this, key, value)
+      }
+    })
+
+    await openApp(page)
+    const html = page.locator('html')
+    await expect(html).toHaveAttribute('data-color-scheme', 'light')
+
+    await page.getByRole('switch', { name: '다크 테마' }).click()
+    await expect(html).toHaveAttribute('data-color-scheme', 'dark')
+    expect(errors).toEqual([])
   })
 })
