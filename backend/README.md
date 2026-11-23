@@ -31,10 +31,17 @@ Testcontainers가 테스트마다 PostgreSQL 컨테이너를 띄우므로 Docker
 ## 컨테이너 이미지
 
 ```bash
-./gradlew bootBuildImage
+TAG=$(date +%Y%m%d-%H%M%S)
+docker build -t simple-cal-backend:$TAG -t simple-cal-backend:latest .
 ```
 
-Dockerfile 없이 Cloud Native Buildpacks로 `simple-cal-backend:<빌드 시각>`(예: `20261123-095210`, 빌드한 컴퓨터의 현지 시각)과 `simple-cal-backend:latest`를 로컬 Docker에 만든다. 이미지에는 Docker Compose 지원이 없으므로 DB 접속 정보는 환경 변수로 준다.
+`Dockerfile`이 두 단계로 만든다. JDK 25 단계에서 `./gradlew bootJar`로 jar를 만들고(Gradle 캐시는 BuildKit 캐시 마운트로 재사용), JRE 25 단계가 비루트 사용자로 실행한다. 로컬에 JDK가 없어도 된다. 태그는 빌드 시각(예: `20261123-095210`, 빌드한 컴퓨터의 현지 시각)이고 프론트엔드와 같은 형식이다.
+
+- 이미지 빌드에서는 테스트를 건너뛴다(`-x test`). Testcontainers가 빌드 컨테이너 안에서는 Docker를 쓸 수 없으므로 테스트는 밖에서 `./gradlew test`로 돌린다.
+- 힙은 `JAVA_TOOL_OPTIONS=-XX:MaxRAMPercentage=75`로 컨테이너 메모리 제한의 75%까지 쓴다. 바꾸려면 실행할 때 `-e JAVA_TOOL_OPTIONS=...`.
+- 다른 방법으로 `./gradlew bootBuildImage`도 남아 있다. Dockerfile 없이 Cloud Native Buildpacks로 같은 이름·태그(`simple-cal-backend:<빌드 시각>`, `:latest`)의 이미지를 만든다(로컬 JDK 25 필요, JVM 메모리는 자동 조정).
+
+이미지에는 Docker Compose 지원이 없으므로 DB 접속 정보는 환경 변수로 준다.
 
 ```bash
 docker run --rm -p 8080:8080 \

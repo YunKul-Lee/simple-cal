@@ -1,5 +1,5 @@
 # simple-cal 백엔드 + PostgreSQL을 jake-ns에 배포
-# TAG_PLACEHOLDER는 bootBuildImage가 만든 빌드 시각 태그로 바꿔서 적용한다:
+# TAG_PLACEHOLDER는 이미지 빌드 시각 태그(docker build 또는 bootBuildImage)로 바꿔서 적용한다:
 #   sed "s/TAG_PLACEHOLDER/$TAG/" backend/k8s.yaml | kubectl -n jake-ns apply -f -
 # DB 비밀번호는 로컬 전용 기본값
 apiVersion: v1

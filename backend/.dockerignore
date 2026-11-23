@@ -1,0 +1,10 @@
+.gradle
+build
+bin
+out
+.idea
+.vscode
+*.iml
+compose.yaml
+k8s.yaml
+README.md
