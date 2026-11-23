@@ -69,8 +69,17 @@ http://localhost:8081 로 접속한다. 다른 포트를 쓰려면 `PORT=8082 do
 - 외부 DB 툴은 `localhost:5432`, DB·사용자·비밀번호 모두 `simplecal`(로컬 전용)로 접속한다. 포트는 이 컴퓨터에서만 열린다. `./gradlew bootRun`의 DB(`backend/compose.yaml`, 역시 5432)와 동시에 쓰려면 `DB_PORT=15432 docker compose up -d`.
 - 로그: `docker compose logs -f simple-cal-backend`, 상태: `docker compose ps`
 - 코드를 바꾼 뒤 `docker compose up -d --build`를 다시 하면 바뀐 이미지의 컨테이너만 교체된다.
-- 데이터는 `simple-cal_db` 볼륨에 남는다. 멈추기만 할 때는 `docker compose down`, 데이터까지 지우려면 `docker compose down -v`.
 - `backend/compose.yaml`은 `./gradlew bootRun`이 DB만 띄울 때 쓰는 별개 파일이다.
+
+종료(저장소 루트에서 실행한다. `backend/`에서 하면 다른 프로젝트를 가리킨다):
+
+```bash
+docker compose down      # 컨테이너와 네트워크를 지운다. DB 데이터(simple-cal_db 볼륨)는 남는다
+docker compose down -v   # 데이터까지 지운다 — 다음에 띄우면 기본 캘린더만 있는 빈 DB
+docker compose stop      # 컨테이너를 지우지 않고 멈추기만 한다. docker compose start로 다시 켠다
+```
+
+`docker compose ps`에 아무것도 나오지 않으면 모두 내려간 것이다. 다시 띄울 때는 `docker compose up -d`(코드를 바꿨으면 `--build`).
 
 #### compose 없이 `docker run`으로
 
