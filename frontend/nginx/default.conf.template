@@ -1,0 +1,26 @@
+server {
+    listen 8080;
+    root /usr/share/nginx/html;
+
+    gzip on;
+    gzip_types text/css application/javascript application/json image/svg+xml;
+
+    location /api/ {
+        proxy_pass ${BACKEND_URL};
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # 파일명에 해시가 붙어 있어 오래 캐시해도 된다
+    location /assets/ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # SPA: 없는 경로는 index.html로. index.html은 매번 새로 받는다
+    location / {
+        try_files $uri /index.html;
+        add_header Cache-Control "no-cache";
+    }
+}

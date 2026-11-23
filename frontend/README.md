@@ -27,3 +27,29 @@ VITE_MOCK=off pnpm dev   # /api 요청이 Vite 프록시를 통해 localhost:808
 - `VITE_MOCK=off` 이면 MSW를 시작하지 않는다. 백엔드 주소를 바꾸려면 `VITE_API_TARGET`.
 - 예전에 MSW 개발 모드로 띄운 적이 있으면 브라우저에 서비스 워커가 남아 있을 수 있다. 개발자 도구 Application → Service Workers에서 해제하면 확실하다.
 - API 계약은 설계 문서 **3.4** 절, 오류 응답(RFC 9457 Problem Details, 상태 코드 기준)은 [백엔드 설계서 3.4](../docs/superpowers/specs/2026-11-22-simple-cal-backend-design.md). MSW도 같은 형식으로 응답한다(`src/mocks/problems.ts`).
+
+## 컨테이너 이미지
+
+```bash
+TAG=$(date +%Y%m%d-%H%M%S)
+docker build -t simple-cal-frontend:$TAG -t simple-cal-frontend:latest .
+```
+
+두 단계로 만든다. node 단계에서 `pnpm build`를 돌리고, 그 결과(`dist/`)를 nginx(비루트, 포트 8080)가 서빙한다. 태그는 백엔드와 같은 빌드 시각 형식이다.
+
+- `/api/`는 nginx가 `BACKEND_URL`(기본 `http://simple-cal-backend:8080`, k8s 서비스 이름)로 프록시한다. 브라우저 입장에서는 같은 오리진이라 CORS 설정이 필요 없다.
+- 없는 경로는 `index.html`로 응답한다. `/assets/`는 1년 캐시, `index.html`은 `no-cache`.
+- nginx는 시작할 때 백엔드 호스트 이름을 찾으므로, 이름을 찾지 못하면 뜨지 않는다.
+
+로컬에서 실행(백엔드는 호스트의 8080):
+
+```bash
+docker run --rm -p 8081:8080 -e BACKEND_URL=http://host.docker.internal:8080 simple-cal-frontend:latest
+```
+
+k8s 배포(`../backend/k8s.yaml`을 먼저 적용):
+
+```bash
+sed "s/TAG_PLACEHOLDER/$TAG/" k8s.yaml | kubectl -n jake-ns apply -f -
+kubectl -n jake-ns port-forward svc/simple-cal-frontend 8081:80   # http://localhost:8081
+```
