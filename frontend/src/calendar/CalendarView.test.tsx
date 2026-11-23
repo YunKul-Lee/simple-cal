@@ -122,4 +122,23 @@ describe('CalendarView', () => {
     await screen.findByText('보고서')
     expect(container.querySelector('[data-color-scheme="dark"]')).not.toBeNull()
   })
+
+  test('목록 보기의 할 일은 시간 열이 따로 있다', async () => {
+    const { user, container } = setup(events)
+    await user.click(await screen.findByRole('tab', { name: '목록' }))
+    await waitFor(() => expect(container.querySelector('.sc-view-listWeek')).not.toBeNull())
+    const check = await screen.findByRole('checkbox', { name: '보고서 완료' })
+    const content = check.closest('.task-content')
+    const row = check.closest('.item-task')
+    expect(content).not.toBeNull()
+    expect(row).not.toBeNull()
+    expect(content!.textContent).not.toContain('하루 종일')
+    expect(row!.textContent).toContain('하루 종일')
+  })
+
+  test('보기 루트에 훅 클래스', async () => {
+    const { container } = setup(events)
+    await screen.findByText('보고서')
+    expect(container.querySelector('.sc-view-timeGridWeek')).not.toBeNull()
+  })
 })

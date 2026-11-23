@@ -12,10 +12,11 @@ export default defineConfig({
     baseURL: `http://localhost:${PORT}`,
     locale: 'ko-KR',
     timezoneId: 'Asia/Seoul',
+    colorScheme: 'light',
     viewport: { width: 1400, height: 900 },
     trace: 'retain-on-failure',
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'], viewport: { width: 1400, height: 900 } } }],
+  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'], viewport: { width: 1400, height: 900 }, colorScheme: 'light' } }],
   webServer: {
     command: `pnpm exec vite --port ${PORT} --strictPort`,
     url: `http://localhost:${PORT}`,

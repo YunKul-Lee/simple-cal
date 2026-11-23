@@ -10,9 +10,11 @@
   border-color: var(--fc-event-color);
   color: var(--text);
 }
-.task-content { display: flex; align-items: center; gap: 4px; padding: 1px 2px; overflow: hidden; white-space: nowrap; color: var(--text); }
+.task-content { font-size: 12px; display: flex; align-items: center; gap: 4px; padding: 1px 2px; overflow: hidden; white-space: nowrap; color: var(--text); }
 .task-check { margin: 0; cursor: pointer; flex: none; }
 .task-time { color: var(--muted); font-size: 11px; }
 .task-title { overflow: hidden; text-overflow: ellipsis; }
 .is-done .task-title { text-decoration: line-through; color: var(--muted); }
 .overdue-badge { color: #d64545; font-size: 11px; flex: none; }
+/* 목록 보기: 테두리 대신 v7 기본 점으로 캘린더 색을 보인다 (v6와 같은 모양) */
+.sc-view-listWeek .item-task.item-task { border-width: 0; }

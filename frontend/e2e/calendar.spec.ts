@@ -15,22 +15,23 @@ test.beforeEach(async ({ page }) => {
 test('시간 칸의 일정 블록에 제목이 보인다', async ({ page }) => {
   await seedItem(page, { type: 'event', title: '주간회의', date: '2026-11-23', startTime: '10:00', endTime: '11:00' })
 
-  await expect(page.locator('.fc-timegrid-event')).toContainText('주간회의')
+  await expect(page.locator('.sc-view-timeGridWeek .item-event')).toContainText('주간회의')
 })
 
 test('빈 시간 칸을 클릭해 일정을 만든다', async ({ page }) => {
-  const lane = page.locator('td.fc-timegrid-slot-lane[data-time="14:00:00"]')
+  const lane = page.locator('.sc-slot[data-time="14:00:00"]')
   await lane.scrollIntoViewIfNeeded()
   const laneBox = (await lane.boundingBox())!
   const x = await columnCenterX(page, '2026-11-24')
-  await lane.click({ position: { x: x - laneBox.x, y: laneBox.height / 2 } })
+  // v7은 시간 줄 레인을 배경 층에 그리고 날짜 열이 그 위에 겹친다 — 사용자처럼 그 좌표를 마우스로 누른다
+  await page.mouse.click(x, laneBox.y + laneBox.height / 2)
 
   const popover = page.getByRole('dialog', { name: '새 항목' })
   await expect(popover).toBeVisible()
   await popover.getByLabel('제목').fill('1:1')
   await popover.getByLabel('제목').press('Enter')
 
-  await expect(page.locator('.fc-timegrid-event', { hasText: '1:1' })).toBeVisible()
+  await expect(page.locator('.sc-view-timeGridWeek .item-event', { hasText: '1:1' })).toBeVisible()
   const items = await apiItems(page, ...WEEK)
   expect(items).toContainEqual(
     expect.objectContaining({ title: '1:1', date: '2026-11-24', startTime: '14:00', endTime: '15:00' }),
@@ -58,7 +59,7 @@ test('하루 종일 줄을 클릭해 할 일을 만들고 체크하면 줄이 �
 test('일정을 다음 날로 끌어 옮기면 새로고침 후에도 유지된다', async ({ page }) => {
   await seedItem(page, { type: 'event', title: '회의', date: '2026-11-23', startTime: '10:00', endTime: '11:00' })
 
-  const event = page.locator('.fc-timegrid-event', { hasText: '회의' })
+  const event = page.locator('.sc-view-timeGridWeek .item-event', { hasText: '회의' })
   await event.scrollIntoViewIfNeeded()
   const from = center((await event.boundingBox())!)
   await dragTo(page, from, { x: await columnCenterX(page, '2026-11-24'), y: from.y })
@@ -71,7 +72,7 @@ test('일정을 다음 날로 끌어 옮기면 새로고침 후에도 유지된�
 test('시간 칸 일정을 하루 종일 줄로 끌면 하루 종일 일정이 된다', async ({ page }) => {
   await seedItem(page, { type: 'event', title: '워크숍', date: '2026-11-25', startTime: '10:00', endTime: '11:00' })
 
-  const event = page.locator('.fc-timegrid-event', { hasText: '워크숍' })
+  const event = page.locator('.sc-view-timeGridWeek .item-event', { hasText: '워크숍' })
   await event.scrollIntoViewIfNeeded()
   const from = center((await event.boundingBox())!)
   const to = center((await allDayCell(page, '2026-11-25').boundingBox())!)
@@ -93,19 +94,37 @@ test('밀린 할 일은 오늘 하루 종일 줄 맨 위에 원래 날짜 배지
 })
 
 test('주·월·목록 보기로 전환된다', async ({ page }) => {
-  await page.getByRole('button', { name: '월', exact: true }).click()
-  await expect(page.locator('.fc-dayGridMonth-view')).toBeVisible()
+  await page.getByRole('tab', { name: '월', exact: true }).click()
+  await expect(page.locator('.sc-view-dayGridMonth')).toBeVisible()
 
-  await page.getByRole('button', { name: '목록', exact: true }).click()
-  await expect(page.locator('.fc-list')).toBeVisible()
+  await page.getByRole('tab', { name: '목록', exact: true }).click()
+  await expect(page.locator('.sc-view-listWeek')).toBeVisible()
 
-  await page.getByRole('button', { name: '주', exact: true }).click()
-  await expect(page.locator('.fc-timeGridWeek-view')).toBeVisible()
+  await page.getByRole('tab', { name: '주', exact: true }).click()
+  await expect(page.locator('.sc-view-timeGridWeek')).toBeVisible()
+})
+
+test('목록 보기에서도 할 일 체크박스로 완료한다', async ({ page }) => {
+  await seedItem(page, { type: 'task', title: '장보기', date: '2026-11-25' })
+
+  await page.getByRole('tab', { name: '목록', exact: true }).click()
+  await expect(page.locator('.sc-view-listWeek')).toBeVisible()
+
+  const check = page.getByRole('checkbox', { name: '장보기 완료' })
+  await expect(check).toBeVisible()
+  await check.click()
+  await expect(check).toBeChecked()
+  await expect(page.getByRole('dialog')).toBeHidden()
+
+  await page.reload()
+  await page.getByRole('tab', { name: '목록', exact: true }).click()
+  await expect(page.locator('.sc-view-listWeek')).toBeVisible()
+  await expect(page.getByRole('checkbox', { name: '장보기 완료' })).toBeChecked()
 })
 
 test('캘린더를 숨기면 그 캘린더의 항목이 사라진다', async ({ page }) => {
   await seedItem(page, { type: 'event', title: '숨김테스트', date: '2026-11-24', startTime: '10:00', endTime: '11:00' })
-  const item = page.locator('.fc').getByText('숨김테스트')
+  const item = page.locator('.sc-view').getByText('숨김테스트')
   await expect(item).toBeVisible()
 
   // 체크 상태는 낙관적 갱신이 한 틱 뒤에 반영된다 — uncheck()/check()는 클릭 직후 상태를 검사하므로 click + 재시도 단언을 쓴다

@@ -37,17 +37,34 @@ function badgeText(date: string): string {
   return `${m}/${d}부터`
 }
 
-function renderContent(arg: EventDisplayInfo) {
-  const { item, overdueFrom } = propsOf(arg)
-  if (item.type === 'event') return true // v6: true여야 FullCalendar 기본 표시(시간 + 제목) — undefined는 빈 칸
+const ALL_DAY_TEXT = '하루 종일'
+
+function TaskContent({ item, overdueFrom, timeText }: ItemEventProps & { timeText: string }) {
   return (
     <div className="task-content">
       <input type="checkbox" className="task-check" aria-label={`${item.title} 완료`} checked={item.done} readOnly />
-      {arg.timeText && <span className="task-time">{arg.timeText}</span>}
+      {timeText && <span className="task-time">{timeText}</span>}
       <span className="task-title">{item.title}</span>
       {overdueFrom && <span className="overdue-badge">{badgeText(overdueFrom)}</span>}
     </div>
   )
+}
+
+function renderContent(arg: EventDisplayInfo) {
+  const props = propsOf(arg)
+  if (props.item.type === 'event') return true // 일정은 FullCalendar 기본 표시(시간 + 제목)
+  if (arg.view.type.startsWith('list')) {
+    // v7 목록 보기는 eventContent가 시간 열까지 대신 그린다 — 시간 열은 테마 클래스로 따로 둔다
+    return (
+      <>
+        <div className={arg.timeClass}>{arg.timeText || ALL_DAY_TEXT}</div>
+        <div className={arg.titleClass}>
+          <TaskContent {...props} timeText="" />
+        </div>
+      </>
+    )
+  }
+  return <TaskContent {...props} timeText={arg.timeText} />
 }
 
 export function CalendarView({
@@ -91,6 +108,11 @@ export function CalendarView({
       <FullCalendar
         plugins={[classicTheme, dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
         colorScheme={colorScheme}
+        // 테마와 무관한 훅 클래스 — v7은 .fc-* 클래스를 붙이지 않으므로 e2e와 우리 CSS가 이것으로 요소를 고른다
+        viewClass={(info) => `sc-view sc-view-${info.view.type}`}
+        dayHeaderClass="sc-day-header"
+        dayCellClass="sc-day-cell"
+        slotLaneClass="sc-slot"
         locale={koLocale}
         initialView="timeGridWeek"
         initialDate={initialDate}
@@ -98,7 +120,7 @@ export function CalendarView({
         headerToolbar={{ start: 'prev,next today', center: 'title', end: 'timeGridWeek,dayGridMonth,listWeek' }}
         todayText="오늘"
         buttons={{ timeGridWeek: { text: '주' }, dayGridMonth: { text: '월' }, listWeek: { text: '목록' } }}
-        allDayText="하루 종일"
+        allDayText={ALL_DAY_TEXT}
         height="100%"
         nowIndicator
         editable

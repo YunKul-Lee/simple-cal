@@ -1,12 +1,17 @@
 import { expect, type Page } from '@playwright/test'
 import type { Calendar, Item, ItemInput } from '../src/types'
 
+// FullCalendar v7은 .fc-* 의미 클래스를 붙이지 않는다(난독화된 유틸리티 클래스뿐).
+// 그래서 CalendarView가 class 옵션으로 붙이는 sc-* 훅 클래스
+// (sc-view / sc-view-<view.type>, sc-day-header, sc-day-cell, sc-slot)와
+// v7이 붙이는 data-date="YYYY-MM-DD" / data-time="HH:mm:ss" 속성으로 요소를 고른다.
+
 /** "오늘"을 2026-11-25(수)로 고정 — 주 보기는 11-23(월) ~ 11-29(일) */
 export const TODAY = new Date('2026-11-25T10:00:00')
 
 async function waitForApp(page: Page) {
   await expect(page.getByRole('checkbox', { name: '내 캘린더' })).toBeVisible()
-  await expect(page.locator('.fc-timegrid')).toBeAttached()
+  await expect(page.locator('.sc-view-timeGridWeek')).toBeAttached()
 }
 
 export async function openApp(page: Page) {
@@ -54,14 +59,14 @@ export async function apiItems(page: Page, from: string, to: string): Promise<It
 
 /** 주 보기 열 머리글의 가로 중앙 */
 export async function columnCenterX(page: Page, date: string): Promise<number> {
-  const box = await page.locator(`th.fc-col-header-cell[data-date="${date}"]`).boundingBox()
+  const box = await page.locator(`.sc-day-header[data-date="${date}"]`).boundingBox()
   if (!box) throw new Error(`column header ${date} not found`)
   return box.x + box.width / 2
 }
 
 /** 주 보기 '하루 종일' 줄의 날짜 칸 */
 export const allDayCell = (page: Page, date: string) =>
-  page.locator(`.fc-timegrid .fc-daygrid-day[data-date="${date}"]`)
+  page.locator(`.sc-view-timeGridWeek .sc-day-cell[data-date="${date}"]`)
 
 /** 마우스로 천천히 끌어 놓는다 (FullCalendar는 여러 번의 mousemove가 있어야 드래그로 인식한다) */
 export async function dragTo(page: Page, from: { x: number; y: number }, to: { x: number; y: number }) {
