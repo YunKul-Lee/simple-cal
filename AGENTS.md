@@ -27,7 +27,28 @@ simple-cal/
 - 오류 응답: [백엔드 설계 3.4절](docs/superpowers/specs/2026-11-22-simple-cal-backend-design.md)
 ## 자주 쓰는 명령
 
-<!-- TODO: 전체 실행(docker compose), 테스트 명령 요약. 상세는 README로 링크 -->
+디렉토리별 명령은 [frontend/AGENTS.md](frontend/AGENTS.md)와 [backend/AGENTS.md](backend/AGENTS.md)에 있다. 자세한 실행 방법은 [README.md](README.md).
+
+```bash
+# 화면만 (MSW 가짜 API, 백엔드 없이)
+cd frontend && pnpm install && pnpm dev
+
+# 백엔드와 함께 — 터미널 두 개
+cd backend && ./gradlew bootRun          # PostgreSQL 자동 기동, localhost:8080
+cd frontend && VITE_MOCK=off pnpm dev    # /api를 Vite 프록시로 백엔드에 보낸다
+
+# 전체를 컨테이너로 (저장소 루트에서) — http://localhost:8081
+docker compose up -d --build
+docker compose down                      # 데이터까지 지우려면 -v
+
+# 테스트
+cd frontend && pnpm test && pnpm lint && pnpm build
+cd frontend && pnpm test:e2e
+cd backend && ./gradlew test             # Docker 필요
+```
+
+- 루트 `compose.yaml`은 전체 실행용이고, `backend/compose.yaml`은 `./gradlew bootRun`이 DB만 띄울 때 쓴다. `docker compose` 명령은 저장소 루트에서 실행한다.
+- 두 compose가 모두 DB 포트 5432를 쓴다. 동시에 띄우려면 `DB_PORT=15432 docker compose up -d`.
 
 ## 공통 규칙
 
